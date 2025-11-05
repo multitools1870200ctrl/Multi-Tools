@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Rotator & Flipper Tool</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #007BFF;
+            --primary-dark: #0056b3;
+            --primary-light: #4da6ff;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gray-color: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--gray-color);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 40px 30px;
+            text-align: center;
+            transition: var(--transition);
+            background-color: rgba(0, 123, 255, 0.05);
+            position: relative;
+        }
+
+        .upload-section:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+
+        .upload-section.drag-over {
+            background-color: rgba(0, 123, 255, 0.15);
+            border-color: var(--primary-dark);
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            font-size: 1.2rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+        }
+
+        .upload-btn:hover, .upload-btn:focus {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+        }
+
+        .supported-formats {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        .file-validation {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        .validation-error {
+            color: var(--danger-color);
+        }
+
+        .validation-success {
+            color: var(--success-color);
+        }
+
+        /* Preview Section */
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .preview-container {
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            background-color: var(--light-color);
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preview-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            position: relative;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.5s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.3;
+            display: none;
+        }
+
+        .canvas-overlay.grid {
+            background-image: 
+                linear-gradient(rgba(0, 123, 255, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 123, 255, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .image-info {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Controls Section */
+        .controls-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            font-weight: normal;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .transform-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .transform-btn {
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 12px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .transform-btn:hover, .transform-btn:focus {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .transform-btn:active {
+            transform: translateY(0);
+        }
+
+        .transform-icon {
+            font-size: 1.5rem;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: none;
+        }
+
+        .advanced-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .advanced-settings {
+            grid-column: 1 / -1;
+            display: none;
+            padding: 20px;
+            background-color: rgba(0, 123, 255, 0.05);
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+        }
+
+        .advanced-settings.show {
+            display: block;
+        }
+
+        .option-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .option-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .option-checkbox label {
+            cursor: pointer;
+        }
+
+        /* Action Section */
+        .action-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .action-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .undo-btn, .redo-btn {
+            background-color: var(--gray-color);
+            color: white;
+        }
+
+        .undo-btn:hover, .redo-btn:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.4);
+        }
+
+        .undo-btn:disabled, .redo-btn:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .reset-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        .download-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .download-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+        }
+
+        .download-btn:disabled {
+            background-color: var(--gray-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Export Section */
+        .export-section {
+            display: none;
+            padding: 20px;
+            background-color: rgba(0, 123, 255, 0.05);
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+        }
+
+        .export-section.show {
+            display: block;
+        }
+
+        .export-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .format-select, .quality-slider {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        /* Loading Indicator */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 123, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+
+        .keyboard-shortcuts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .transform-buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .export-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .action-section {
+                flex-wrap: wrap;
+            }
+
+            .action-btn {
+                flex: 1;
+                min-width: 140px;
+                justify-content: center;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .upload-section {
+                padding: 30px 20px;
+            }
+
+            .preview-container {
+                height: 300px;
+            }
+            
+            .transform-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Image Rotator & Flipper Tool</h1>
+        <p class="subtitle">Rotate, flip, and transform your images with precision and ease</p>
+    </header>
+
+    <main class="container">
+        <!-- Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-icon">🖼️</div>
+            <p class="upload-text">Drag & drop your image here or click to browse</p>
+            <input type="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp,image/gif">
+            <button class="upload-btn" id="uploadBtn">
+                <span>Choose Image</span>
+                <span>📂</span>
+            </button>
+            <p class="supported-formats">Supported formats: JPG, PNG, WEBP, GIF (Max: 10MB)</p>
+            <div class="file-validation" id="fileValidation"></div>
+        </section>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Processing image...</p>
+        </div>
+
+        <!-- Preview Section -->
+        <section class="preview-section" id="previewSection" style="display: none;">
+            <div class="preview-container">
+                <h3 class="preview-title">
+                    <span>Image Preview</span>
+                    <button class="tooltip" id="gridToggle">
+                        🔲
+                        <span class="tooltip-text">Toggle grid overlay for alignment</span>
+                    </button>
+                </h3>
+                <div class="preview-content">
+                    <canvas id="previewCanvas"></canvas>
+                    <div class="canvas-overlay grid" id="gridOverlay"></div>
+                </div>
+                <div id="imageInfo" class="image-info">
+                    <span>Resolution: -</span>
+                    <span>Size: -</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls Section -->
+        <section class="controls-section" id="controlsSection" style="display: none;">
+            <div class="control-group">
+                <h3 class="control-label">Rotation Controls</h3>
+                
+                <div class="transform-buttons">
+                    <button class="transform-btn" id="rotateLeftBtn" title="Rotate Left (L)">
+                        <span class="transform-icon">↶</span>
+                        <span>Rotate Left</span>
+                    </button>
+                    <button class="transform-btn" id="rotateRightBtn" title="Rotate Right (R)">
+                        <span class="transform-icon">↷</span>
+                        <span>Rotate Right</span>
+                    </button>
+                    <button class="transform-btn" id="flipHorizontalBtn" title="Flip Horizontal (H)">
+                        <span class="transform-icon">⇄</span>
+                        <span>Flip Horizontal</span>
+                    </button>
+                    <button class="transform-btn" id="flipVerticalBtn" title="Flip Vertical (V)">
+                        <span class="transform-icon">⇅</span>
+                        <span>Flip Vertical</span>
+                    </button>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Custom Rotation</span>
+                        <span id="rotationValue">0°</span>
+                    </div>
+                    <input type="range" min="0" max="360" value="0" class="slider" id="rotationSlider">
+                </div>
+                
+                <button class="transform-btn" id="resetRotationBtn">
+                    <span class="transform-icon">🔄</span>
+                    <span>Reset Rotation</span>
+                </button>
+            </div>
+
+            <div class="control-group">
+                <h3 class="control-label">History & Actions</h3>
+                
+                <div class="transform-buttons">
+                    <button class="action-btn undo-btn" id="undoBtn" disabled>
+                        <span>Undo</span>
+                        <span>↶</span>
+                    </button>
+                    <button class="action-btn redo-btn" id="redoBtn" disabled>
+                        <span>Redo</span>
+                        <span>↷</span>
+                    </button>
+                </div>
+                
+                <button class="advanced-toggle" id="advancedToggle">
+                    <span>Advanced Settings</span>
+                    <span>▼</span>
+                </button>
+                
+                <div class="advanced-settings" id="advancedSettings">
+                    <h4>Image Enhancement</h4>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Brightness</span>
+                            <span id="brightnessValue">100%</span>
+                        </div>
+                        <input type="range" min="50" max="200" value="100" class="slider" id="brightnessSlider">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Contrast</span>
+                            <span id="contrastValue">100%</span>
+                        </div>
+                        <input type="range" min="50" max="200" value="100" class="slider" id="contrastSlider">
+                    </div>
+                    
+                    <div class="option-checkbox">
+                        <input type="checkbox" id="autoRotate">
+                        <label for="autoRotate">Auto Rotate (EXIF orientation)</label>
+                    </div>
+                    
+                    <div class="option-checkbox">
+                        <input type="checkbox" id="previewMode" checked>
+                        <label for="previewMode">Live Preview Mode</label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Section -->
+        <section class="action-section" id="actionSection" style="display: none;">
+            <button class="action-btn reset-btn" id="resetBtn">
+                <span>Reset All</span>
+                <span>🔄</span>
+            </button>
+            <button class="action-btn download-btn" id="downloadBtn" disabled>
+                <span>Download Image</span>
+                <span>💾</span>
+            </button>
+        </section>
+
+        <!-- Export Section -->
+        <section class="export-section" id="exportSection">
+            <h3 class="control-label">Export Settings</h3>
+            <div class="export-controls">
+                <div class="format-select">
+                    <label for="formatSelect">Output Format</label>
+                    <select id="formatSelect">
+                        <option value="png">PNG (Lossless)</option>
+                        <option value="jpeg">JPEG (Compressed)</option>
+                        <option value="webp">WEBP (Modern)</option>
+                    </select>
+                </div>
+                
+                <div class="quality-slider">
+                    <div class="slider-label">
+                        <label for="qualitySlider">Quality</label>
+                        <span id="qualityValue">100%</span>
+                    </div>
+                    <input type="range" min="10" max="100" value="100" class="slider" id="qualitySlider">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>All image processing happens in your browser - your images are never uploaded to a server.</p>
+        <div class="keyboard-shortcuts">
+            <div class="shortcut-item">
+                <span>Rotate Right</span>
+                <span>R Key</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Rotate Left</span>
+                <span>L Key</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Flip Horizontal</span>
+                <span>H Key</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Flip Vertical</span>
+                <span>V Key</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Undo</span>
+                <span>Ctrl+Z</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Redo</span>
+                <span>Ctrl+Y</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileValidation = document.getElementById('fileValidation');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const previewSection = document.getElementById('previewSection');
+        const controlsSection = document.getElementById('controlsSection');
+        const actionSection = document.getElementById('actionSection');
+        const exportSection = document.getElementById('exportSection');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const gridOverlay = document.getElementById('gridOverlay');
+        const gridToggle = document.getElementById('gridToggle');
+        const imageInfo = document.getElementById('imageInfo');
+        const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+        const rotateRightBtn = document.getElementById('rotateRightBtn');
+        const flipHorizontalBtn = document.getElementById('flipHorizontalBtn');
+        const flipVerticalBtn = document.getElementById('flipVerticalBtn');
+        const resetRotationBtn = document.getElementById('resetRotationBtn');
+        const rotationSlider = document.getElementById('rotationSlider');
+        const rotationValue = document.getElementById('rotationValue');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const advancedToggle = document.getElementById('advancedToggle');
+        const advancedSettings = document.getElementById('advancedSettings');
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const brightnessValue = document.getElementById('brightnessValue');
+        const contrastSlider = document.getElementById('contrastSlider');
+        const contrastValue = document.getElementById('contrastValue');
+        const formatSelect = document.getElementById('formatSelect');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+
+        // Canvas context
+        const ctx = previewCanvas.getContext('2d');
+
+        // Global variables
+        let originalImage = null;
+        let currentRotation = 0;
+        let scaleX = 1;
+        let scaleY = 1;
+        let brightness = 100;
+        let contrast = 100;
+        let actionHistory = [];
+        let currentHistoryIndex = -1;
+        let isGridVisible = false;
+
+        // Event Listeners
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadSection.addEventListener('dragover', handleDragOver);
+        uploadSection.addEventListener('dragleave', handleDragLeave);
+        uploadSection.addEventListener('drop', handleDrop);
+        
+        // Transformation buttons
+        rotateLeftBtn.addEventListener('click', () => rotateImage(-90));
+        rotateRightBtn.addEventListener('click', () => rotateImage(90));
+        flipHorizontalBtn.addEventListener('click', () => flipImage('horizontal'));
+        flipVerticalBtn.addEventListener('click', () => flipImage('vertical'));
+        resetRotationBtn.addEventListener('click', resetRotation);
+        
+        // Sliders
+        rotationSlider.addEventListener('input', updateRotationFromSlider);
+        brightnessSlider.addEventListener('input', updateBrightness);
+        contrastSlider.addEventListener('input', updateContrast);
+        qualitySlider.addEventListener('input', updateQuality);
+        
+        // Action buttons
+        undoBtn.addEventListener('click', undoAction);
+        redoBtn.addEventListener('click', redoAction);
+        resetBtn.addEventListener('click', handleReset);
+        downloadBtn.addEventListener('click', handleDownload);
+        
+        // Toggles
+        advancedToggle.addEventListener('click', toggleAdvancedSettings);
+        gridToggle.addEventListener('click', toggleGrid);
+        
+        // Format change
+        formatSelect.addEventListener('change', updateQualityVisibility);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', handleKeyboardShortcuts);
+
+        // File handling functions
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                validateAndProcessFile(file);
+            }
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            uploadSection.classList.add('drag-over');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            uploadSection.classList.remove('drag-over');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            uploadSection.classList.remove('drag-over');
+            
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                validateAndProcessFile(file);
+            }
+        }
+
+        function validateAndProcessFile(file) {
+            // Reset validation message
+            fileValidation.textContent = '';
+            fileValidation.className = 'file-validation';
+            
+            // Check file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showValidationError('Unsupported file format. Please use JPG, PNG, WEBP, or GIF.');
+                return;
+            }
+            
+            // Check file size (10MB limit)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                showValidationError('File too large. Please select an image smaller than 10MB.');
+                return;
+            }
+            
+            // File is valid
+            showValidationSuccess('File accepted! Processing...');
+            processImageFile(file);
+        }
+
+        function showValidationError(message) {
+            fileValidation.textContent = message;
+            fileValidation.className = 'file-validation validation-error';
+        }
+
+        function showValidationSuccess(message) {
+            fileValidation.textContent = message;
+            fileValidation.className = 'file-validation validation-success';
+        }
+
+        function processImageFile(file) {
+            showLoading();
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    // Set up canvas
+                    setupCanvas();
+                    
+                    // Reset transformations
+                    resetTransformations();
+                    
+                    // Save initial state to history
+                    saveToHistory();
+                    
+                    // Update UI
+                    hideLoading();
+                    uploadSection.style.display = 'none';
+                    previewSection.style.display = 'grid';
+                    controlsSection.style.display = 'grid';
+                    actionSection.style.display = 'flex';
+                    exportSection.classList.add('show');
+                    
+                    // Update image info
+                    const sizeKB = (file.size / 1024).toFixed(2);
+                    imageInfo.innerHTML = `
+                        <span>Resolution: ${originalImage.width} × ${originalImage.height}</span>
+                        <span>Size: ${sizeKB} KB</span>
+                    `;
+                    
+                    // Enable download button
+                    downloadBtn.disabled = false;
+                };
+                originalImage.onerror = function() {
+                    hideLoading();
+                    showError('Failed to load image. Please try another file.');
+                };
+                originalImage.src = e.target.result;
+            };
+            
+            reader.onerror = function() {
+                hideLoading();
+                showError('Failed to read file. Please try again.');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function showLoading() {
+            loadingIndicator.style.display = 'block';
+            uploadSection.style.opacity = '0.5';
+            uploadBtn.disabled = true;
+        }
+
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+            uploadSection.style.opacity = '1';
+            uploadBtn.disabled = false;
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+
+        // Canvas setup and drawing
+        function setupCanvas() {
+            // Set canvas dimensions to match image
+            previewCanvas.width = originalImage.width;
+            previewCanvas.height = originalImage.height;
+            
+            // Draw the original image
+            drawImage();
+        }
+
+        function drawImage() {
+            if (!originalImage) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            
+            // Save context state
+            ctx.save();
+            
+            // Move to center of canvas
+            ctx.translate(previewCanvas.width / 2, previewCanvas.height / 2);
+            
+            // Apply rotation
+            ctx.rotate(currentRotation * Math.PI / 180);
+            
+            // Apply flip
+            ctx.scale(scaleX, scaleY);
+            
+            // Apply brightness and contrast filters
+            ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+            
+            // Draw image centered
+            ctx.drawImage(
+                originalImage, 
+                -originalImage.width / 2, 
+                -originalImage.height / 2,
+                originalImage.width,
+                originalImage.height
+            );
+            
+            // Restore context state
+            ctx.restore();
+        }
+
+        // Transformation functions
+        function rotateImage(degrees) {
+            currentRotation += degrees;
+            
+            // Normalize rotation to 0-360 degrees
+            currentRotation = currentRotation % 360;
+            if (currentRotation < 0) currentRotation += 360;
+            
+            // Update slider
+            rotationSlider.value = currentRotation;
+            rotationValue.textContent = `${currentRotation}°`;
+            
+            // Redraw image
+            drawImage();
+            
+            // Save to history
+            saveToHistory();
+        }
+
+        function flipImage(direction) {
+            if (direction === 'horizontal') {
+                scaleX = -scaleX;
+            } else if (direction === 'vertical') {
+                scaleY = -scaleY;
+            }
+            
+            // Redraw image
+            drawImage();
+            
+            // Save to history
+            saveToHistory();
+        }
+
+        function resetRotation() {
+            currentRotation = 0;
+            rotationSlider.value = 0;
+            rotationValue.textContent = '0°';
+            
+            // Redraw image
+            drawImage();
+            
+            // Save to history
+            saveToHistory();
+        }
+
+        function updateRotationFromSlider() {
+            currentRotation = parseInt(rotationSlider.value);
+            rotationValue.textContent = `${currentRotation}°`;
+            
+            // Redraw image
+            drawImage();
+            
+            // Save to history if not during continuous slider movement
+            // We'll save on slider release instead
+        }
+
+        function resetTransformations() {
+            currentRotation = 0;
+            scaleX = 1;
+            scaleY = 1;
+            brightness = 100;
+            contrast = 100;
+            
+            // Update UI elements
+            rotationSlider.value = 0;
+            rotationValue.textContent = '0°';
+            brightnessSlider.value = 100;
+            brightnessValue.textContent = '100%';
+            contrastSlider.value = 100;
+            contrastValue.textContent = '100%';
+            
+            // Reset history
+            actionHistory = [];
+            currentHistoryIndex = -1;
+            updateHistoryButtons();
+        }
+
+        // Image enhancement functions
+        function updateBrightness() {
+            brightness = parseInt(brightnessSlider.value);
+            brightnessValue.textContent = `${brightness}%`;
+            drawImage();
+        }
+
+        function updateContrast() {
+            contrast = parseInt(contrastSlider.value);
+            contrastValue.textContent = `${contrast}%`;
+            drawImage();
+        }
+
+        function updateQuality() {
+            qualityValue.textContent = `${qualitySlider.value}%`;
+        }
+
+        function updateQualityVisibility() {
+            const format = formatSelect.value;
+            const qualityContainer = document.querySelector('.quality-slider');
+            
+            // Show quality slider only for lossy formats
+            if (format === 'jpeg' || format === 'webp') {
+                qualityContainer.style.display = 'block';
+            } else {
+                qualityContainer.style.display = 'none';
+            }
+        }
+
+        // History management
+        function saveToHistory() {
+            // Remove any future states if we're not at the end
+            if (currentHistoryIndex < actionHistory.length - 1) {
+                actionHistory = actionHistory.slice(0, currentHistoryIndex + 1);
+            }
+            
+            // Save current state
+            actionHistory.push({
+                rotation: currentRotation,
+                scaleX: scaleX,
+                scaleY: scaleY,
+                brightness: brightness,
+                contrast: contrast
+            });
+            
+            // Update history index
+            currentHistoryIndex = actionHistory.length - 1;
+            
+            // Update history buttons
+            updateHistoryButtons();
+        }
+
+        function undoAction() {
+            if (currentHistoryIndex > 0) {
+                currentHistoryIndex--;
+                restoreFromHistory();
+            }
+        }
+
+        function redoAction() {
+            if (currentHistoryIndex < actionHistory.length - 1) {
+                currentHistoryIndex++;
+                restoreFromHistory();
+            }
+        }
+
+        function restoreFromHistory() {
+            const state = actionHistory[currentHistoryIndex];
+            
+            currentRotation = state.rotation;
+            scaleX = state.scaleX;
+            scaleY = state.scaleY;
+            brightness = state.brightness;
+            contrast = state.contrast;
+            
+            // Update UI
+            rotationSlider.value = currentRotation;
+            rotationValue.textContent = `${currentRotation}°`;
+            brightnessSlider.value = brightness;
+            brightnessValue.textContent = `${brightness}%`;
+            contrastSlider.value = contrast;
+            contrastValue.textContent = `${contrast}%`;
+            
+            // Redraw image
+            drawImage();
+            
+            // Update history buttons
+            updateHistoryButtons();
+        }
+
+        function updateHistoryButtons() {
+            undoBtn.disabled = currentHistoryIndex <= 0;
+            redoBtn.disabled = currentHistoryIndex >= actionHistory.length - 1;
+        }
+
+        // UI toggle functions
+        function toggleAdvancedSettings() {
+            advancedSettings.classList.toggle('show');
+            advancedToggle.querySelector('span:last-child').textContent = 
+                advancedSettings.classList.contains('show') ? '▲' : '▼';
+        }
+
+        function toggleGrid() {
+            isGridVisible = !isGridVisible;
+            gridOverlay.style.display = isGridVisible ? 'block' : 'none';
+            
+            // Update button icon
+            gridToggle.textContent = isGridVisible ? '🔳' : '🔲';
+        }
+
+        // Keyboard shortcuts
+        function handleKeyboardShortcuts(e) {
+            // Only process if no input is focused
+            if (document.activeElement.tagName === 'INPUT' || 
+                document.activeElement.tagName === 'TEXTAREA' ||
+                document.activeElement.tagName === 'SELECT') {
+                return;
+            }
+            
+            // Check for Ctrl key combinations
+            if (e.ctrlKey) {
+                if (e.key === 'z' || e.key === 'Z') {
+                    e.preventDefault();
+                    undoAction();
+                } else if (e.key === 'y' || e.key === 'Y') {
+                    e.preventDefault();
+                    redoAction();
+                }
+                return;
+            }
+            
+            // Single key shortcuts
+            switch(e.key.toLowerCase()) {
+                case 'r':
+                    e.preventDefault();
+                    rotateImage(90);
+                    break;
+                case 'l':
+                    e.preventDefault();
+                    rotateImage(-90);
+                    break;
+                case 'h':
+                    e.preventDefault();
+                    flipImage('horizontal');
+                    break;
+                case 'v':
+                    e.preventDefault();
+                    flipImage('vertical');
+                    break;
+            }
+        }
+
+        // Download function
+        function handleDownload() {
+            if (!originalImage) return;
+            
+            // Get export settings
+            const format = formatSelect.value;
+            const quality = parseInt(qualitySlider.value) / 100;
+            
+            // Create a temporary canvas for export
+            const exportCanvas = document.createElement('canvas');
+            const exportCtx = exportCanvas.getContext('2d');
+            
+            // Calculate dimensions for rotated image
+            let exportWidth = originalImage.width;
+            let exportHeight = originalImage.height;
+            
+            // Adjust dimensions if rotated by 90 or 270 degrees
+            if (currentRotation % 180 !== 0) {
+                exportWidth = originalImage.height;
+                exportHeight = originalImage.width;
+            }
+            
+            // Set canvas dimensions
+            exportCanvas.width = exportWidth;
+            exportCanvas.height = exportHeight;
+            
+            // Apply transformations for export
+            exportCtx.save();
+            exportCtx.translate(exportCanvas.width / 2, exportCanvas.height / 2);
+            exportCtx.rotate(currentRotation * Math.PI / 180);
+            exportCtx.scale(scaleX, scaleY);
+            exportCtx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+            
+            // Draw image
+            exportCtx.drawImage(
+                originalImage, 
+                -originalImage.width / 2, 
+                -originalImage.height / 2,
+                originalImage.width,
+                originalImage.height
+            );
+            
+            exportCtx.restore();
+            
+            // Create download link
+            const link = document.createElement('a');
+            let mimeType = 'image/png';
+            let extension = 'png';
+            
+            if (format === 'jpeg') {
+                mimeType = 'image/jpeg';
+                extension = 'jpg';
+            } else if (format === 'webp') {
+                mimeType = 'image/webp';
+                extension = 'webp';
+            }
+            
+            link.download = `transformed-image.${extension}`;
+            link.href = exportCanvas.toDataURL(mimeType, quality);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Reset function
+        function handleReset() {
+            // Reset file input
+            fileInput.value = '';
+            fileValidation.textContent = '';
+            fileValidation.className = 'file-validation';
+            
+            // Reset UI
+            uploadSection.style.display = 'block';
+            previewSection.style.display = 'none';
+            controlsSection.style.display = 'none';
+            actionSection.style.display = 'none';
+            exportSection.classList.remove('show');
+            advancedSettings.classList.remove('show');
+            advancedToggle.querySelector('span:last-child').textContent = '▼';
+            gridOverlay.style.display = 'none';
+            isGridVisible = false;
+            gridToggle.textContent = '🔲';
+            
+            // Reset image and transformations
+            originalImage = null;
+            resetTransformations();
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            
+            // Reset image info
+            imageInfo.innerHTML = '<span>Resolution: -</span><span>Size: -</span>';
+            
+            // Disable download button
+            downloadBtn.disabled = true;
+        }
+
+        // Initialize quality slider visibility
+        updateQualityVisibility();
+    </script>
+</body>
+</html>
