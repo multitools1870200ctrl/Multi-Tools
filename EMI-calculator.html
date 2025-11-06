@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Global Multi-Currency EMI Calculator — Bright Blue Theme</title>
+  <meta name="description" content="Global EMI calculator with currency selector, animated charts, transitions and export options">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:linear-gradient(135deg,#f3fbff,#ffffff);
+      --card:#ffffffcc; --glass:rgba(255,255,255,0.7);
+      --primary:#0EA5FF; --accent:#38BDF8; --neon:#7CFFFD; --muted:#556874; --radius:14px;
+      --shadow:0 12px 36px rgba(6,30,63,0.08);
+      font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:#0b2130}
+    .app{max-width:1200px;margin:28px auto;padding:20px}
+    header{display:flex;gap:16px;align-items:center}
+    .logo{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;box-shadow:0 10px 34px rgba(14,165,255,0.14)}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:20px;margin-top:18px}
+    @media(max-width:980px){.layout{grid-template-columns:1fr}}
+
+    .card{background:var(--card);backdrop-filter:blur(6px);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:640px){.inputs{grid-template-columns:1fr}}
+
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=number], select{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(11,33,48,0.05);font-size:15px}
+    .row{display:flex;gap:10px;align-items:center}
+
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;box-shadow:0 8px 24px rgba(14,165,255,0.12)}
+    .btn.ghost{background:transparent;border:1px solid rgba(11,33,48,0.06);color:var(--primary)}
+
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    @media(max-width:640px){.summary{grid-template-columns:1fr}}
+    .metric{background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0.85));padding:12px;border-radius:12px;border:1px solid rgba(11,33,48,0.03);text-align:center}
+    .metric .label{font-size:13px;color:var(--muted)}
+    .metric .value{font-size:20px;font-weight:800;color:var(--primary);margin-top:6px}
+
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+    @media(max-width:640px){.charts{grid-template-columns:1fr}}
+
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px;border-bottom:1px dashed rgba(11,33,48,0.04);text-align:left;font-size:13px}
+
+    .currency-select{display:flex;gap:8px;align-items:center}
+    .flag{font-size:20px;margin-right:8px}
+
+    /* animations */
+    .glow{box-shadow:0 12px 36px rgba(14,165,255,0.14)}
+    .fade{opacity:0;transform:translateY(8px);animation:fadeIn .6s ease forwards}
+    @keyframes fadeIn{to{opacity:1;transform:none}}
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+    footer{margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">🌍</div>
+      <div>
+        <h1>Global Multi-Currency EMI Calculator</h1>
+        <p class="lead">Calculate EMIs in any currency — animated charts, transitions, country flags, and exportable reports.</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Left: inputs, results, charts -->
+      <section class="card fade">
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div class="currency-select">
+            <span class="muted">Currency</span>
+            <select id="currency" style="padding:8px;border-radius:8px">
+              <!-- A compact list of common currencies; you can expand -->
+              <option value="USD">🇺🇸 USD</option>
+              <option value="EUR">🇪🇺 EUR</option>
+              <option value="GBP">🇬🇧 GBP</option>
+              <option value="INR">🇮🇳 INR</option>
+              <option value="PKR">🇵🇰 PKR</option>
+              <option value="AED">🇦🇪 AED</option>
+              <option value="JPY">🇯🇵 JPY</option>
+              <option value="CNY">🇨🇳 CNY</option>
+              <option value="AUD">🇦🇺 AUD</option>
+              <option value="CAD">🇨🇦 CAD</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button id="toggleCompare" class="btn ghost">Compare</button>
+            <button id="exportBtn" class="btn ghost">Export PDF</button>
+          </div>
+        </div>
+
+        <div class="inputs" style="margin-top:12px">
+          <div>
+            <label for="principal">Loan Amount</label>
+            <input id="principal" type="number" min="0" step="100" value="1000000" />
+          </div>
+
+          <div>
+            <label for="rate">Interest Rate (% p.a.)</label>
+            <input id="rate" type="number" step="0.01" value="9.5" />
+          </div>
+
+          <div>
+            <label for="tenureVal">Tenure</label>
+            <div class="row">
+              <input id="tenureVal" type="number" min="1" value="10" />
+              <select id="tenureUnit"><option value="years">Years</option><option value="months">Months</option></select>
+            </div>
+          </div>
+
+          <div>
+            <label for="type">EMI Type</label>
+            <select id="type"><option value="fixed">Fixed</option><option value="reducing">Reducing</option></select>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="calc" class="btn">Calculate</button>
+          <button id="reset" class="btn ghost">Reset</button>
+          <button id="saveLocal" class="btn ghost">Save</button>
+          <button id="loadLocal" class="btn ghost">Load</button>
+        </div>
+
+        <div class="summary">
+          <div class="metric">
+            <div class="label">Monthly EMI</div>
+            <div id="emi" class="value">—</div>
+          </div>
+          <div class="metric">
+            <div class="label">Total Interest</div>
+            <div id="interest" class="value">—</div>
+          </div>
+          <div class="metric">
+            <div class="label">Total Payment</div>
+            <div id="payment" class="value">—</div>
+          </div>
+        </div>
+
+        <div class="charts">
+          <div class="card" style="padding:12px">
+            <canvas id="doughnut" width="400" height="260"></canvas>
+          </div>
+          <div class="card" style="padding:12px">
+            <canvas id="lineChart" width="400" height="260"></canvas>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="card">
+          <h4 style="margin:0 0 8px 0">Amortization Schedule (Preview)</h4>
+          <div style="max-height:260px;overflow:auto">
+            <table id="amort"><thead><tr><th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: history, compare, options -->
+      <aside class="card fade">
+        <h3 style="margin-top:0">History & Saved Calculations</h3>
+        <div id="history" style="min-height:120px;max-height:360px;overflow:auto"></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="clearHistory" class="btn ghost">Clear</button>
+          <button id="exportCsv" class="btn ghost">Export CSV</button>
+        </div>
+
+        <div style="margin-top:16px">
+          <h4 style="margin:0 0 8px 0">Settings</h4>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label class="muted">Number format:</label>
+            <select id="numFormat"><option value="auto">Auto (locale)</option><option value="en-US">1,234.56</option><option value="de-DE">1.234,56</option></select>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>Made with 💙 • Client-side calculations • International currencies supported via Intl</footer>
+  </div>
+
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    // Helper: format currency using Intl.NumberFormat
+    function formatterFor(curr, locale){ try{ return new Intl.NumberFormat(locale || undefined, {style: 'currency', currency: curr, maximumFractionDigits: 2}); }catch(e){ return new Intl.NumberFormat(undefined, {maximumFractionDigits:2}); } }
+
+    const $ = id => document.getElementById(id);
+    const principal = $('principal'), rate = $('rate'), tenureVal = $('tenureVal'), tenureUnit = $('tenureUnit'), typeEl = $('type');
+    const emiEl = $('emi'), interestEl = $('interest'), paymentEl = $('payment');
+    const amortBody = document.querySelector('#amort tbody');
+    const historyEl = $('history');
+    const currencyEl = $('currency');
+
+    // Charts
+    let doughnutChart, lineChart;
+    function initCharts(){
+      const dtx = document.getElementById('doughnut').getContext('2d');
+      doughnutChart = new Chart(dtx, {type:'doughnut', data:{labels:['Principal','Interest'], datasets:[{data:[1,1], backgroundColor:['#0EA5FF','#FFC09F']} ] }, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+      const ltx = document.getElementById('lineChart').getContext('2d');
+      lineChart = new Chart(ltx, {type:'line', data:{labels:[], datasets:[{label:'Balance',data:[],borderColor:'#0EA5FF',fill:true,backgroundColor:'rgba(14,165,255,0.12)'}]}, options:{responsive:true,scales:{x:{display:false}}}});
+    }
+    initCharts();
+
+    // EMI calc
+    function calcEMI(){
+      const P = parseFloat(principal.value) || 0;
+      let n = parseFloat(tenureVal.value) || 0; if(tenureUnit.value === 'years') n = n * 12;
+      const annual = parseFloat(rate.value) || 0; const r = annual/12/100;
+      const schedule = [];
+      let emi=0, totalPay=0, totalInt=0;
+      if(n <= 0) return {emi:0,totalInt:0,totalPay:0,schedule:[]};
+      if(r === 0){ emi = P/n; totalPay = P; totalInt = 0; let bal=P; for(let m=1;m<=n;m++){ bal = Math.max(0, bal - emi); schedule.push({m,emi,principal:emi,interest:0,balance:bal}); } }
+      else{
+        emi = (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+        let balance = P; for(let m=1;m<=n;m++){ const interest = balance * r; const principalPart = emi - interest; balance = Math.max(0, balance - principalPart); schedule.push({m,emi,principal:principalPart,interest, balance}); }
+        totalPay = emi * n; totalInt = totalPay - P;
+      }
+      // ensure totals
+      if(totalPay === 0) totalPay = emi * n;
+      if(totalInt === 0) totalInt = totalPay - P;
+      return {emi, totalInt, totalPay, schedule};
+    }
+
+    function formatNumber(val){ const curr = currencyEl.value || 'USD'; const locale = $('numFormat').value === 'auto' ? undefined : $('numFormat').value; return formatterFor(curr, locale).format(val); }
+
+    // animate count-up
+    function animateCount(el, from, to, duration=700){ const start = performance.now(); function tick(now){ const t = Math.min(1,(now-start)/duration); const value = from + (to-from)*t; el.textContent = formatNumber(Number(value.toFixed(2))); if(t<1) requestAnimationFrame(tick); } requestAnimationFrame(tick); }
+
+    function render(){ const res = calcEMI(); animateCount(emiEl, parseFloat(emiEl.dataset.prev||0), res.emi); animateCount(interestEl, parseFloat(interestEl.dataset.prev||0), res.totalInt); animateCount(paymentEl, parseFloat(paymentEl.dataset.prev||0), res.totalPay);
+      emiEl.dataset.prev = res.emi; interestEl.dataset.prev = res.totalInt; paymentEl.dataset.prev = res.totalPay;
+
+      // amortization preview
+      amortBody.innerHTML = ''; const rows = res.schedule.slice(0, Math.min(res.schedule.length, 120)); for(const r of rows){ const tr = document.createElement('tr'); tr.innerHTML = `<td>${r.m}</td><td>${formatNumber(r.emi)}</td><td>${formatNumber(r.principal)}</td><td>${formatNumber(r.interest)}</td><td>${formatNumber(r.balance)}</td>`; amortBody.appendChild(tr); }
+
+      // charts
+      doughnutChart.data.datasets[0].data = [ parseFloat(principal.value)||0, res.totalInt ]; doughnutChart.update();
+      const labels = res.schedule.map(s => 'M'+s.m); const balances = res.schedule.map(s => parseFloat(s.balance.toFixed(2)));
+      lineChart.data.labels = labels; lineChart.data.datasets[0].data = balances; lineChart.update();
+
+      // save to history UI
+      pushHistorySnapshot();
+    }
+
+    // Save/load history (localStorage)
+    function pushHistorySnapshot(){ const snap = {ts:Date.now(), principal:principal.value, rate:rate.value, tenure:tenureVal.value+' '+tenureUnit.value, currency:currencyEl.value}; let h = JSON.parse(localStorage.getItem('emi_history')||'[]'); h.unshift(snap); h = h.slice(0,8); localStorage.setItem('emi_history', JSON.stringify(h)); renderHistory(); }
+    function renderHistory(){ const h = JSON.parse(localStorage.getItem('emi_history')||'[]'); historyEl.innerHTML = ''; h.forEach((s,idx)=>{ const div = document.createElement('div'); div.style.padding='8px'; div.style.borderBottom='1px dashed rgba(11,33,48,0.04)'; div.innerHTML = `<div style="font-weight:700">${s.currency} ${Number(s.principal).toLocaleString()} • ${s.rate}%</div><div class="muted" style="font-size:13px">${s.tenure} • ${new Date(s.ts).toLocaleString()}</div>`; div.addEventListener('click', ()=>{ principal.value = s.principal; rate.value=s.rate; const parts = s.tenure.split(' '); tenureVal.value=parts[0]; tenureUnit.value=parts[1]; render(); }); historyEl.appendChild(div); }); }
+
+    // Export PDF of left column
+    document.getElementById('exportBtn').addEventListener('click', async ()=>{
+      const left = document.querySelector('main .card'); const canvas = await html2canvas(left, {scale:2}); const img = canvas.toDataURL('image/png'); const { jsPDF } = window.jspdf; const pdf = new jsPDF({orientation:'portrait'}); const w = pdf.internal.pageSize.getWidth(); const h = (canvas.height * w) / canvas.width; pdf.addImage(img,'PNG',0,10,w,h); pdf.save('emi_report.pdf');
+    });
+
+    // Export CSV
+    $('exportCsv').addEventListener('click', ()=>{
+      const res = calcEMI(); const rows = [['Month','EMI','Principal','Interest','Balance']]; res.schedule.forEach(s=> rows.push([s.m,s.emi.toFixed(2),s.principal.toFixed(2),s.interest.toFixed(2),s.balance.toFixed(2)])); const csv = rows.map(r=>r.join(',')).join('\n'); const blob = new Blob([csv],{type:'text/csv'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='amortization.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),30000);
+    });
+
+    // Save & load single snapshot
+    $('saveLocal').addEventListener('click', ()=>{ const snap = {principal:principal.value, rate:rate.value, tenure:tenureVal.value, tenureUnit:tenureUnit.value, currency:currencyEl.value}; localStorage.setItem('emi_saved', JSON.stringify(snap)); alert('Saved locally'); });
+    $('loadLocal').addEventListener('click', ()=>{ const s = JSON.parse(localStorage.getItem('emi_saved')||'null'); if(!s) return alert('No saved calculation'); principal.value=s.principal; rate.value=s.rate; tenureVal.value=s.tenure; tenureUnit.value=s.tenureUnit; currencyEl.value=s.currency; render(); });
+
+    // Reset
+    $('reset').addEventListener('click', ()=>{ principal.value=1000000; rate.value=9.5; tenureVal.value=10; tenureUnit.value='years'; typeEl.value='fixed'; render(); });
+
+    // Clear history
+    $('clearHistory').addEventListener('click', ()=>{ localStorage.removeItem('emi_history'); renderHistory(); });
+
+    // Save history snapshot periodically only when values change
+    let lastHash = '';
+    function snapshotHash(){ return [principal.value,rate.value,tenureVal.value,tenureUnit.value,currencyEl.value].join('|'); }
+    setInterval(()=>{ const h = snapshotHash(); if(h !== lastHash){ lastHash=h; /* do nothing heavy */ } },1500);
+
+    // initial render
+    renderHistory(); render();
+
+    // Calculate button
+    $('calc').addEventListener('click', render);
+
+    // change currency formatting when currency changes
+    currencyEl.addEventListener('change', ()=>{ render(); });
+
+    // initialize
+    window.addEventListener('load', ()=>{ render(); });
+  </script>
+</body>
+</html>
