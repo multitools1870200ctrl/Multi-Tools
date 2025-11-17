@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Remove Duplicate Lines — Bright Blue Theme</title>
+  <meta name="description" content="Remove duplicate lines tool — preserve order, remove consecutive duplicates, case-sensitive options, preview, download, copy, undo/redo, Web Worker." />
+  <style>
+    :root{
+      --blue-500:#0d6efd; --blue-600:#0b5ed7; --blue-100:#e9f3ff; --white:#ffffff; --text:#0b1a2b;
+      --muted:#6c7a89; --success:#28a745; --danger:#dc3545; --radius:12px; --shadow:0 8px 20px rgba(13,110,253,0.08);
+      --gap:12px; --pad:14px;
+    }
+    @media (prefers-color-scheme: dark){ :root{ --white:#071126; --blue-100: rgba(9,30,66,0.4); --text:#e6eefc; } }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:20px;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--blue-100),var(--white));color:var(--text);-webkit-font-smoothing:antialiased}
+
+    .app{max-width:1100px;margin:0 auto;border-radius:18px;background:var(--white);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px;gap:12px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .title{font-weight:700}
+    .subtitle{font-size:.9rem;color:var(--muted)}
+    .toolbar{display:flex;gap:8px}
+
+    main{display:grid;grid-template-columns:1fr;gap:16px;padding:18px}
+    @media(min-width:960px){ main{grid-template-columns:1fr 420px} }
+
+    .card{padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.98),var(--white))}
+    textarea{width:100%;min-height:260px;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);font-size:1rem;line-height:1.5;resize:vertical}
+
+    .row{display:flex;gap:8px;align-items:center}
+    .btn{background:var(--blue-500);color:var(--white);border:none;padding:10px 12px;border-radius:10px;cursor:pointer;transition:transform .18s,box-shadow .18s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(13,110,253,0.12)}
+    .btn.ghost{background:transparent;color:var(--blue-600);border:1px solid rgba(11,26,43,0.06)}
+    .small{font-size:.9rem;color:var(--muted)}
+
+    .options{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .option-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+    .preview{white-space:pre-wrap;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);min-height:220px;overflow:auto}
+    .stats{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+    .stat{display:flex;justify-content:space-between;padding:8px;border-radius:8px;background:linear-gradient(180deg,rgba(13,110,253,0.03),transparent)}
+
+    .toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+    .toast{background:var(--white);padding:10px 12px;border-radius:10px;box-shadow:var(--shadow);border-left:4px solid var(--blue-500);animation:toast-in .32s both}
+    @keyframes toast-in{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(6,12,24,0.4);display:none;align-items:center;justify-content:center}
+    .modal{background:var(--white);padding:16px;border-radius:12px;max-width:760px;width:94%}
+
+    footer{padding:12px 18px;background:linear-gradient(180deg, rgba(13,110,253,0.03), transparent);display:flex;justify-content:space-between;align-items:center}
+    .kbd{background:#f6f8fb;border:1px solid rgba(11,26,43,0.04);padding:4px 8px;border-radius:6px;font-size:0.85rem}
+
+    @media (prefers-reduced-motion:reduce){ .btn, .toast{transition:none;animation:none} }
+  </style>
+</head>
+<body>
+  <div class="app" id="app" role="application">
+    <header>
+      <div class="brand">
+        <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden><rect width="24" height="24" rx="6" fill="var(--blue-500)"></rect><path d="M6 9h12M6 15h8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div>
+          <div class="title">Remove Duplicate Lines</div>
+          <div class="subtitle">Keep order · Remove consecutive · Case & whitespace options · Web Worker</div>
+        </div>
+      </div>
+
+      <div class="toolbar" role="toolbar" aria-label="Primary actions">
+        <button class="btn" id="processBtn" title="Process (Ctrl/Cmd+Enter)">Remove Duplicates</button>
+        <button class="btn ghost" id="copyBtn">Copy Output</button>
+        <button class="btn ghost" id="downloadBtn">Download</button>
+        <button class="btn ghost" id="previewRemovedBtn">Removed Preview</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="inputLabel">
+        <label id="inputLabel" class="small">Input</label>
+        <textarea id="input" placeholder="Paste or type lines here…" aria-label="Lines input"></textarea>
+
+        <div class="options">
+          <div class="option-row">
+            <label class="small">Mode:</label>
+            <select id="modeSelect" aria-label="Duplicate removal mode">
+              <option value="keep-first">Remove duplicates (keep first)</option>
+              <option value="consecutive">Remove consecutive duplicates only</option>
+              <option value="unique-only">Keep only unique lines (remove all duplicates)</option>
+              <option value="show-duplicates">Show duplicates (preview)</option>
+            </select>
+            <label><input type="checkbox" id="caseSensitive"> Case-sensitive</label>
+            <label><input type="checkbox" id="ignoreWhitespace"> Ignore leading/trailing spaces</label>
+            <label><input type="checkbox" id="ignoreAllWhitespace"> Ignore all whitespace</label>
+          </div>
+
+          <div class="option-row">
+            <label><input type="checkbox" id="removeEmpty"> Remove empty lines</label>
+            <label><input type="checkbox" id="collapseBlank"> Collapse multiple blank lines</label>
+            <label><input type="checkbox" id="sortOutput"> Sort output (A→Z)</label>
+            <button class="btn ghost" id="clearBtn">Clear</button>
+            <button class="btn ghost" id="undoBtn">Undo</button>
+            <button class="btn ghost" id="redoBtn">Redo</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card" aria-labelledby="outputLabel">
+        <label id="outputLabel" class="small">Output Preview</label>
+        <div id="preview" class="preview" role="region" aria-live="polite" tabindex="0">&nbsp;</div>
+
+        <div class="stats" id="stats">
+          <div class="stat"><div>Total lines</div><div id="totalLines">0</div></div>
+          <div class="stat"><div>Unique lines</div><div id="uniqueLines">0</div></div>
+          <div class="stat"><div>Duplicates removed</div><div id="removedCount">0</div></div>
+          <div class="stat"><div>Consecutive duplicate groups</div><div id="consecGroups">0</div></div>
+          <div class="stat"><div>Empty lines</div><div id="emptyCount">0</div></div>
+        </div>
+
+      </aside>
+    </main>
+
+    <footer>
+      <div class="small">Shortcuts: <span class="kbd">Ctrl/Cmd+Enter</span> Process • <span class="kbd">Ctrl/Cmd+C</span> Copy</div>
+      <div class="small">Made for your multi-tool site</div>
+    </footer>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <!-- Removed preview modal -->
+    <div class="modal-backdrop" id="removedModal" role="dialog" aria-modal="true">
+      <div class="modal">
+        <h3>Removed duplicates preview</h3>
+        <div id="removedList" style="max-height:360px;overflow:auto;padding:6px;border-radius:8px;border:1px solid rgba(11,26,43,0.04);margin-top:8px"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn" id="closeRemoved">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* Remove Duplicate Lines — single-file implementation
+   Features: modes (keep-first, consecutive-only, unique-only, show duplicates), case/whitespace options,
+   remove empty lines, collapse blanks, sort, stats, undo/redo, copy/download, removed preview, Web Worker.
+*/
+(function(){
+  // Elements
+  const input = document.getElementById('input');
+  const processBtn = document.getElementById('processBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const preview = document.getElementById('preview');
+  const modeSelect = document.getElementById('modeSelect');
+  const caseSensitive = document.getElementById('caseSensitive');
+  const ignoreWhitespace = document.getElementById('ignoreWhitespace');
+  const ignoreAllWhitespace = document.getElementById('ignoreAllWhitespace');
+  const removeEmpty = document.getElementById('removeEmpty');
+  const collapseBlank = document.getElementById('collapseBlank');
+  const sortOutput = document.getElementById('sortOutput');
+  const clearBtn = document.getElementById('clearBtn');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  const removedModal = document.getElementById('removedModal');
+  const removedList = document.getElementById('removedList');
+  const previewRemovedBtn = document.getElementById('previewRemovedBtn');
+  const closeRemoved = document.getElementById('closeRemoved');
+
+  // Stats
+  const totalLinesEl = document.getElementById('totalLines');
+  const uniqueLinesEl = document.getElementById('uniqueLines');
+  const removedCountEl = document.getElementById('removedCount');
+  const consecGroupsEl = document.getElementById('consecGroups');
+  const emptyCountEl = document.getElementById('emptyCount');
+
+  // State
+  let worker = null; let useWorker = true;
+  let lastResult = {outputLines:[],removedLines:[],stats:{}};
+  let undoStack = []; let redoStack = [];
+  const maxUndo = 50;
+
+  // Init
+  function init(){ attach(); tryInitWorker(); updatePreview(''); }
+
+  function tryInitWorker(){ if(!window.Worker){ useWorker=false; return; }
+    const code = `self.onmessage = function(e){ const {id,lines,opts} = e.data; try{ const mode = opts.mode; const cs = opts.caseSensitive; const ignoreWS = opts.ignoreWhitespace; const ignoreAllWS = opts.ignoreAllWhitespace; const removeEmpty = opts.removeEmpty; const collapseBlank = opts.collapseBlank; const sortOutput = opts.sortOutput; let normalize = (s)=>s; if(ignoreAllWS) normalize = s=>s.replace(/\\s+/g,''); else if(ignoreWS) normalize = s=>s.trim(); const map = new Map(); const removed=[]; const output=[]; let consecGroups=0; let prevNorm=null; let emptyCount=0;
+      for(let i=0;i<lines.length;i++){ let raw = lines[i]; if(removeEmpty && raw.trim()===''){ emptyCount++; continue; } let norm = normalize(raw); let key = cs? norm : norm.toLowerCase(); if(mode==='consecutive'){ if(prevNorm!==null && key===prevNorm){ removed.push(raw); } else { output.push(raw); } prevNorm = key; } else if(mode==='keep-first'){ if(map.has(key)){ removed.push(raw); } else { map.set(key,true); output.push(raw); } } else if(mode==='unique-only'){ if(map.has(key)){ // seen before => mark first seen as duplicate and current as duplicate
+          removed.push(raw);
+        } else { map.set(key,raw); output.push(raw); } } else if(mode==='show-duplicates'){ if(map.has(key)){ removed.push(raw); } else { map.set(key,true); output.push(raw); } }
+      }
+      if(collapseBlank){ // collapse multiple blank lines in output
+        const collapsed=[]; let blank=false; for(const ln of output){ if(ln.trim()===''){ if(!blank){ collapsed.push(''); blank=true; } } else { collapsed.push(ln); blank=false; } } output.length=0; Array.prototype.push.apply(output,collapsed);
+      }
+      if(sortOutput){ output.sort((a,b)=>a.localeCompare(b)); }
+      const stats = {total:lines.length,unique: new Set(output.map(l=> (cs? l.trim(): l.trim().toLowerCase()))).size,removed: removed.length,consecGroups:0,emptyCount: emptyCount}; // consecGroups computing omitted for speed
+      self.postMessage({id,ok:true,output,removed,stats}); }catch(err){ self.postMessage({id,ok:false}); } }`;
+    const blob = new Blob([code],{type:'application/javascript'});
+    worker = new Worker(URL.createObjectURL(blob));
+    worker.onmessage = function(e){ const {id,ok,output,removed,stats} = e.data; if(pending[id]){ pending[id](e.data); delete pending[id]; } }
+  }
+
+  const pending = {}; let wid=1;
+  function runWorker(lines,opts){ return new Promise(resolve=>{ if(!worker||!useWorker){ resolve(null); return; } const id = wid++; pending[id]=resolve; worker.postMessage({id,lines,opts}); setTimeout(()=>{ if(pending[id]){ resolve(null); delete pending[id]; } },1500); }); }
+
+  // Attach events
+  function attach(){ processBtn.addEventListener('click',processNow); copyBtn.addEventListener('click',copyOutput); downloadBtn.addEventListener('click',downloadOutput); clearBtn.addEventListener('click',clearInput);
+    input.addEventListener('input',onInput);
+    previewRemovedBtn.addEventListener('click',openRemovedModal); closeRemoved.addEventListener('click',closeRemovedModal);
+    undoBtn.addEventListener('click',undo); redoBtn.addEventListener('click',redo);
+    document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); processNow(); } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='c' && document.activeElement===preview){ e.preventDefault(); copyOutput(); } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); } });
+  }
+
+  function onInput(){ recordSnapshotForUndo(); scheduleProcess(); }
+
+  let debounceTimer = null; function scheduleProcess(){ if(debounceTimer) clearTimeout(debounceTimer); debounceTimer = setTimeout(()=>{ processNow(false); },200); }
+
+  // Snapshot
+  function recordSnapshotForUndo(){ const last = undoStack[undoStack.length-1]; const snap = {text: input.value}; if(!last || last.text !== snap.text){ undoStack.push(snap); if(undoStack.length>maxUndo) undoStack.shift(); redoStack=[]; } }
+  function undo(){ if(!undoStack.length) return; const snap = undoStack.pop(); redoStack.push({text:input.value}); input.value = snap.text; scheduleProcess(); showToast('Undone'); }
+  function redo(){ if(!redoStack.length) return; const snap = redoStack.pop(); undoStack.push({text:input.value}); input.value = snap.text; scheduleProcess(); showToast('Redone'); }
+
+  // Processing
+  async function processNow(announce=true){ const raw = input.value || ''; const lines = raw.split(/\r?\n/);
+    const opts = {
+      mode: modeSelect.value, caseSensitive: caseSensitive.checked, ignoreWhitespace: ignoreWhitespace.checked, ignoreAllWhitespace: ignoreAllWhitespace.checked,
+      removeEmpty: removeEmpty.checked, collapseBlank: collapseBlank.checked, sortOutput: sortOutput.checked
+    };
+    showToast('Processing...');
+    const workerRes = await runWorker(lines,opts);
+    let output=[], removed=[], stats={};
+    if(workerRes && workerRes.ok){ output = workerRes.output; removed = workerRes.removed; stats = workerRes.stats; }
+    else { // fallback main-thread
+      const res = processLinesMain(lines,opts); output=res.output; removed=res.removed; stats=res.stats; }
+    lastResult = {outputLines: output, removedLines: removed, stats};
+    // update preview and stats
+    updatePreview(output.join('\n'));
+    updateStats(stats, lines.length);
+    if(announce) showToast('Done — ' + (stats.removed||0) + ' removed');
+  }
+
+  // Main-thread processing fallback
+  function processLinesMain(lines,opts){ const normalize = (s)=>{ if(opts.ignoreAllWhitespace) return s.replace(/\s+/g,''); if(opts.ignoreWhitespace) return s.trim(); return s; };
+    const map = new Map(); const output=[]; const removed=[]; if(opts.mode==='consecutive'){ let prev=null; for(const raw of lines){ if(opts.removeEmpty && raw.trim()===''){ if(opts.collapseBlank){ if(prev!=='') { output.push(''); prev=''; } continue; } else { output.push(raw); prev = raw; continue; } } let norm = normalize(raw); let key = opts.caseSensitive? norm: norm.toLowerCase(); if(prev!==null && key=== (opts.caseSensitive? (opts.ignoreWhitespace? prev.trim() : prev) : (opts.ignoreWhitespace? prev.trim().toLowerCase() : prev.toLowerCase()))){ removed.push(raw); } else { output.push(raw); } prev = raw; } } else if(opts.mode==='keep-first' || opts.mode==='show-duplicates' || opts.mode==='unique-only'){ for(const raw of lines){ if(opts.removeEmpty && raw.trim()===''){ continue; } let norm = normalize(raw); let key = opts.caseSensitive? norm : norm.toLowerCase(); if(map.has(key)){ removed.push(raw); if(opts.mode==='show-duplicates'){ /* still track */ } } else { map.set(key, raw); output.push(raw); } } if(opts.mode==='unique-only'){ // remove any duplicates entirely => keep only keys seen once
+        const counts = {}; for(const raw of lines){ if(opts.removeEmpty && raw.trim()==='') continue; let key = opts.caseSensitive? normalize(raw) : normalize(raw).toLowerCase(); counts[key] = (counts[key]||0)+1; } const uniques = []; for(const raw of output){ let key = opts.caseSensitive? normalize(raw) : normalize(raw).toLowerCase(); if(counts[key]===1) uniques.push(raw); }
+        return {output: uniques, removed: lines.filter(l=>!uniques.includes(l)), stats:{total:lines.length,unique:uniqueCount(uniques,opts),removed: lines.length - uniques.length,consecGroups:0,emptyCount: lines.filter(l=>l.trim()==='').length}}; }
+    }
+    if(opts.collapseBlank){ const collapsed=[]; let blank=false; for(const ln of output){ if(ln.trim()===''){ if(!blank){ collapsed.push(''); blank=true; } } else { collapsed.push(ln); blank=false; } } output.length=0; Array.prototype.push.apply(output,collapsed); }
+    if(opts.sortOutput){ output.sort((a,b)=>a.localeCompare(b)); }
+    return {output, removed, stats: {total:lines.length, unique: uniqueCount(output,opts), removed: removed.length, consecGroups:0, emptyCount: lines.filter(l=>l.trim()==='').length}};
+  }
+  function uniqueCount(arr,opts){ const s=new Set(arr.map(l=> opts.caseSensitive? (opts.ignoreWhitespace? l.trim() : l) : (opts.ignoreWhitespace? l.trim().toLowerCase() : l.toLowerCase()))); return s.size; }
+
+  // UI updates
+  function updatePreview(text){ preview.textContent = text || '\u00A0'; }
+  function updateStats(stats,totalLines){ totalLinesEl.textContent = totalLines; uniqueLinesEl.textContent = stats.unique||0; removedCountEl.textContent = stats.removed||0; consecGroupsEl.textContent = stats.consecGroups||0; emptyCountEl.textContent = stats.emptyCount||0; }
+
+  // Removed modal
+  function openRemovedModal(){ removedList.textContent = lastResult.removedLines.join('\n') || 'No removed lines'; removedModal.style.display='flex'; }
+  function closeRemovedModal(){ removedModal.style.display='none'; }
+
+  // Copy / Download
+  function copyOutput(){ const text = lastResult.outputLines.join('\n'); if(!text) return showToast('Nothing to copy'); navigator.clipboard?.writeText(text).then(()=>showToast('Copied output')).catch(()=>{ fallbackCopy(text); }); }
+  function fallbackCopy(text){ const ta = document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); showToast('Copied (fallback)'); }catch(e){ showToast('Copy failed'); } ta.remove(); }
+  function downloadOutput(){ const text = lastResult.outputLines.join('\n'); const blob = new Blob([text],{type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='deduped.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Download started'); }
+
+  // Helpers
+  function clearInput(){ recordSnapshotForUndo(); input.value=''; scheduleProcess(); showToast('Cleared'); }
+  function showToast(msg,timeout=1800){ const toasts = document.getElementById('toasts'); const el = document.createElement('div'); el.className='toast'; el.textContent=msg; toasts.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, timeout); }
+
+  // init
+  init();
+})();
+</script>
+</body>
+</html>
