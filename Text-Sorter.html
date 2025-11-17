@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Text Shortener — Bright Blue Theme</title>
+  <meta name="description" content="Advanced Text Shortener — extractive summarizer with controls, presets, copy, download, history, and Web Worker fallback." />
+  <style>
+    :root{
+      --blue-500:#0d6efd; --blue-600:#0b5ed7; --blue-100:#e9f3ff; --white:#ffffff; --text:#0b1a2b;
+      --muted:#6c7a89; --success:#28a745; --danger:#dc3545; --radius:12px; --shadow:0 8px 20px rgba(13,110,253,0.08);
+    }
+    @media (prefers-color-scheme: dark){ :root{ --white:#071126; --blue-100: rgba(9,30,66,0.4); --text:#e6eefc; } }
+    *{box-sizing:border-box} html,body{height:100%} body{margin:20px;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--blue-100),var(--white));color:var(--text);-webkit-font-smoothing:antialiased}
+
+    .app{max-width:1100px;margin:0 auto;border-radius:18px;background:var(--white);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px;gap:12px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .title{font-weight:700}
+    .subtitle{font-size:.9rem;color:var(--muted)}
+    .toolbar{display:flex;gap:8px}
+
+    main{display:grid;grid-template-columns:1fr;gap:16px;padding:18px}
+    @media(min-width:980px){ main{grid-template-columns:1fr 420px} }
+
+    .card{padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.98),var(--white))}
+    textarea{width:100%;min-height:220px;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);font-size:1rem;line-height:1.5;resize:vertical}
+
+    .row{display:flex;gap:8px;align-items:center}
+    .btn{background:var(--blue-500);color:var(--white);border:none;padding:10px 12px;border-radius:10px;cursor:pointer;transition:transform .18s,box-shadow .18s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(13,110,253,0.12)}
+    .btn.ghost{background:transparent;color:var(--blue-600);border:1px solid rgba(11,26,43,0.06)}
+    .small{font-size:.9rem;color:var(--muted)}
+
+    .controls{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+    .control-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+    .preview{white-space:pre-wrap;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);min-height:180px;overflow:auto}
+    .stats{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+    .stat{display:flex;justify-content:space-between;padding:8px;border-radius:8px;background:linear-gradient(180deg,rgba(13,110,253,0.03),transparent)}
+
+    .slider{width:200px}
+    .tone-pill{padding:6px 8px;border-radius:999px;border:1px solid rgba(11,26,43,0.06);cursor:pointer}
+
+    .diff-rem{background:#fff6f0;text-decoration:line-through;color:var(--danger);padding:2px;border-radius:4px}
+    .diff-add{background:#f0fff6;color:var(--success);padding:2px;border-radius:4px}
+
+    .toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+    .toast{background:var(--white);padding:10px 12px;border-radius:10px;box-shadow:var(--shadow);border-left:4px solid var(--blue-500);animation:toast-in .32s both}
+    @keyframes toast-in{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(6,12,24,0.45);display:none;align-items:center;justify-content:center}
+    .modal{background:var(--white);padding:16px;border-radius:12px;max-width:880px;width:94%}
+
+    footer{padding:12px 18px;background:linear-gradient(180deg, rgba(13,110,253,0.03), transparent);display:flex;justify-content:space-between;align-items:center}
+    .kbd{background:#f6f8fb;border:1px solid rgba(11,26,43,0.04);padding:4px 8px;border-radius:6px;font-size:0.85rem}
+
+    @media (prefers-reduced-motion:reduce){ .btn, .toast{transition:none;animation:none} }
+  </style>
+</head>
+<body>
+  <div class="app" id="app" role="application">
+    <header>
+      <div class="brand">
+        <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden><rect width="24" height="24" rx="6" fill="var(--blue-500)"></rect><path d="M6 8h12M6 12h12" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div>
+          <div class="title">Text Shortener</div>
+          <div class="subtitle">Summarize long text into concise previews for social, headlines, or bullets</div>
+        </div>
+      </div>
+
+      <div class="toolbar" role="toolbar" aria-label="Primary actions">
+        <button class="btn" id="shortenBtn" title="Shorten (Ctrl/Cmd+Enter)">Shorten Text</button>
+        <button class="btn ghost" id="copyBtn">Copy</button>
+        <button class="btn ghost" id="downloadBtn">Download</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="inputLabel">
+        <label id="inputLabel" class="small">Input</label>
+        <textarea id="input" placeholder="Paste or type long text here…" aria-label="Text input"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="small" id="counts">Words: 0 · Chars: 0</div>
+          <div class="row"><button class="btn ghost" id="pasteBtn">Paste</button><button class="btn ghost" id="clearBtn">Clear</button></div>
+        </div>
+
+        <div class="controls">
+          <div class="control-row">
+            <label class="small">Reduction target</label>
+            <input type="range" id="reductionSlider" class="slider" min="10" max="90" value="50">
+            <input type="number" id="reductionNum" value="50" min="10" max="90" style="width:64px">
+            <div class="row" style="margin-left:8px">
+              <button class="tone-pill" data-preset="50">Concise (50%)</button>
+              <button class="tone-pill" data-preset="30">Social (30%)</button>
+              <button class="tone-pill" data-preset="15">Headline (15%)</button>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <label class="small">Format</label>
+            <select id="formatSelect" aria-label="Output format">
+              <option value="paragraph">Paragraph</option>
+              <option value="bullets">Bulleted list</option>
+              <option value="headline">Headline</option>
+              <option value="tweet">Tweetable (<=280)</option>
+            </select>
+
+            <label style="margin-left:8px"><input type="checkbox" id="preserveNames"> Preserve names/entities</label>
+            <label><input type="checkbox" id="showDiff"> Show removed text</label>
+            <label><input type="checkbox" id="autoMode" checked> Auto-shorten</label>
+          </div>
+
+          <div class="control-row">
+            <label class="small">Tone</label>
+            <div class="row">
+              <button class="tone-pill" data-tone="neutral">Neutral</button>
+              <button class="tone-pill" data-tone="formal">Formal</button>
+              <button class="tone-pill" data-tone="casual">Casual</button>
+              <button class="tone-pill" data-tone="promo">Promotional</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card" aria-labelledby="outputLabel">
+        <label id="outputLabel" class="small">Output</label>
+        <div id="preview" class="preview" role="region" aria-live="polite" tabindex="0">&nbsp;</div>
+
+        <div class="stats" style="margin-top:10px">
+          <div class="stat"><div>Original words</div><div id="origWords">0</div></div>
+          <div class="stat"><div>Shortened words</div><div id="shortWords">0</div></div>
+          <div class="stat"><div>Reduction</div><div id="reductionPct">0%</div></div>
+          <div class="stat"><div>Retention score</div><div id="retention">—</div></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn ghost" id="editToggle">Edit Output</button>
+          <button class="btn ghost" id="historyBtn">History</button>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="small">Shortcuts: <span class="kbd">Ctrl/Cmd+Enter</span> Shorten • <span class="kbd">Ctrl/Cmd+U</span> Copy</div>
+      <div class="small">Made for your multi-tool site</div>
+    </footer>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <!-- History modal -->
+    <div class="modal-backdrop" id="historyModal">
+      <div class="modal">
+        <h3>History</h3>
+        <div id="historyList" style="max-height:360px;overflow:auto;margin-top:8px"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn" id="closeHistory">Close</button></div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* Text Shortener — single-file implementation
+   - Extractive summarizer (heuristic TF-IDF sentence scoring)
+   - Web Worker fallback for heavy texts
+   - Controls: reduction slider/presets, format, tone, preserve entities, diff mode, auto/manual
+   - History, undo/redo simple snapshots
+*/
+(function(){
+  // Elements
+  const input = document.getElementById('input');
+  const shortenBtn = document.getElementById('shortenBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const preview = document.getElementById('preview');
+  const countsEl = document.getElementById('counts');
+  const reductionSlider = document.getElementById('reductionSlider');
+  const reductionNum = document.getElementById('reductionNum');
+  const toneButtons = document.querySelectorAll('[data-tone]');
+  const presetButtons = document.querySelectorAll('[data-preset]');
+  const formatSelect = document.getElementById('formatSelect');
+  const preserveNames = document.getElementById('preserveNames');
+  const showDiff = document.getElementById('showDiff');
+  const autoMode = document.getElementById('autoMode');
+  const pasteBtn = document.getElementById('pasteBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const editToggle = document.getElementById('editToggle');
+  const historyBtn = document.getElementById('historyBtn');
+  const historyModal = document.getElementById('historyModal');
+  const historyList = document.getElementById('historyList');
+  const closeHistory = document.getElementById('closeHistory');
+
+  const origWordsEl = document.getElementById('origWords');
+  const shortWordsEl = document.getElementById('shortWords');
+  const reductionPctEl = document.getElementById('reductionPct');
+  const retentionEl = document.getElementById('retention');
+
+  const toasts = document.getElementById('toasts');
+
+  // State
+  let currentTone = 'neutral';
+  let lastSummary = '';
+  let lastOriginal = '';
+  let history = loadHistory();
+  let undoStack = [], redoStack = [];
+  let worker = null; let useWorker = true;
+  const historyKey = 'shortener_history_v1';
+
+  // Init
+  function init(){ attachEvents(); tryInitWorker(); updateCounts(); if(history.length) renderHistoryList(); }
+
+  function tryInitWorker(){ if(!window.Worker){ useWorker=false; return; }
+    const code = `
+      // Simple worker: TF-IDF like sentence scoring
+      self.onmessage = function(e){ const {id,text,targetPct,preserveNames,format,tone} = e.data; try{
+        const sentences = splitSentences(text);
+        const words = tokenize(text);
+        const tf = termFreq(words);
+        const scores = sentences.map(s=> scoreSentence(s,tf));
+        const ranked = sentences.map((s,i)=>({s,score:scores[i],i})).sort((a,b)=>b.score-a.score);
+        const keepCount = Math.max(1, Math.round(ranked.length * (1 - targetPct/100)));
+        const top = ranked.slice(0,keepCount).sort((a,b)=>a.i-b.i).map(x=>x.s);
+        const output = formatOutput(top,format);
+        self.postMessage({id,ok:true,output,keepCount,total:sentences.length});
+      }catch(err){ self.postMessage({id,ok:false}); }
+      };
+      function splitSentences(text){ return text.split(/(?<=[.!?])\\s+/).filter(Boolean); }
+      function tokenize(t){ return (t.match(/\\b\\w+\\b/g)||[]).map(w=>w.toLowerCase()); }
+      function termFreq(words){ const m={}; words.forEach(w=>m[w]=(m[w]||0)+1); return m; }
+      function scoreSentence(s,tf){ const words = (s.match(/\\b\\w+\\b/g)||[]).map(w=>w.toLowerCase()); let score=0; words.forEach(w=>{ score+= (tf[w]||0); }); return score/Math.sqrt(words.length||1); }
+      function formatOutput(lines,fmt){ if(fmt==='bullets') return lines.map(l=>'• '+l).join('\n'); if(fmt==='headline') return lines.slice(0,1).join(' '); if(fmt==='tweet') return lines.join(' ').slice(0,280); return lines.join(' '); }
+    `;
+    const blob = new Blob([code],{type:'application/javascript'});
+    worker = new Worker(URL.createObjectURL(blob));
+    const pending = {};
+    worker.onmessage = function(e){ const {id,ok,output,keepCount,total} = e.data; if(pending[id]){ pending[id].resolve(e.data); delete pending[id]; } };
+    // helper wrapper
+    worker.exec = function(message){ return new Promise((resolve)=>{ const id = Math.random().toString(36).slice(2,9); pending[id]={resolve}; worker.postMessage(Object.assign({id},message)); setTimeout(()=>{ if(pending[id]){ resolve({ok:false}); delete pending[id]; } },2000); }); };
+  }
+
+  // Events
+  function attachEvents(){ reductionSlider.addEventListener('input',onReductionSlider); reductionNum.addEventListener('change',onReductionNum);
+    presetButtons.forEach(b=>b.addEventListener('click',onPreset)); toneButtons.forEach(b=>b.addEventListener('click',onTone));
+    shortenBtn.addEventListener('click',doShorten); copyBtn.addEventListener('click',copyOutput); downloadBtn.addEventListener('click',downloadOutput);
+    pasteBtn.addEventListener('click',pasteFromClipboard); clearBtn.addEventListener('click',clearInput);
+    input.addEventListener('input',onInput);
+    formatSelect.addEventListener('change',()=>{ if(autoMode.checked) scheduleShorten(); });
+    showDiff.addEventListener('change',()=>{ renderPreview(lastSummary, lastOriginal); });
+    editToggle.addEventListener('click',toggleEdit);
+    historyBtn.addEventListener('click',openHistory); closeHistory.addEventListener('click',closeHistoryModal);
+
+    document.addEventListener('keydown',e=>{
+      if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); doShorten(); }
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='u'){ if(document.activeElement===preview){ e.preventDefault(); copyOutput(); } }
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); }
+    });
+  }
+
+  function onReductionSlider(e){ reductionNum.value = e.target.value; if(autoMode.checked) scheduleShorten(); }
+  function onReductionNum(e){ let v = Number(e.target.value); if(isNaN(v) || v<10) v=10; if(v>90) v=90; reductionNum.value=v; reductionSlider.value=v; if(autoMode.checked) scheduleShorten(); }
+  function onPreset(e){ const p = Number(e.currentTarget.dataset.preset); reductionSlider.value=p; reductionNum.value=p; if(autoMode.checked) scheduleShorten(); }
+  function onTone(e){ currentTone = e.currentTarget.dataset.tone; toneButtons.forEach(b=>b.style.borderColor=''); e.currentTarget.style.borderColor='var(--blue-500)'; if(autoMode.checked) scheduleShorten(); }
+
+  function onInput(){ updateCounts(); recordSnapshot(); if(autoMode.checked) scheduleShorten(); }
+
+  // Shortening orchestration
+  let debounceTimer=null; function scheduleShorten(){ if(debounceTimer) clearTimeout(debounceTimer); debounceTimer = setTimeout(()=>doShorten(false),250); }
+
+  async function doShorten(userInitiated=true){ const text = input.value||''; if(!text.trim()){ showToast('Enter text to shorten'); return; }
+    const targetPct = Number(reductionNum.value);
+    showToast('Shortening…');
+    // try worker
+    let res=null;
+    if(worker && useWorker){ try{ res = await worker.exec({text, targetPct, preserveNames: preserveNames.checked, format: formatSelect.value, tone: currentTone}); }catch(e){ res=null; }
+    }
+    if(!res || !res.ok){ // fallback main-thread
+      res = mainThreadSummarize(text, targetPct, formatSelect.value);
+    }
+    const output = res.output || '';
+    lastSummary = output; lastOriginal = text;
+    renderPreview(output, text);
+    updateStats(text, output);
+    saveToHistory(text, output);
+    recordSnapshot();
+    showToast('Shortened — retained '+ (res.keepCount||0) + ' / ' + (res.total||0) + ' sentences');
+  }
+
+  // Main-thread summarizer (simple TF heuristics)
+  function mainThreadSummarize(text, targetPct, format){ const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean); const words = (text.match(/\b\w+\b/g)||[]).map(w=>w.toLowerCase()); const tf = {}; words.forEach(w=>tf[w]=(tf[w]||0)+1);
+    const scores = sentences.map(s=>{ const ws = (s.match(/\b\w+\b/g)||[]).map(w=>w.toLowerCase()); let sc=0; ws.forEach(w=> sc += (tf[w]||0)); return sc/Math.sqrt(ws.length||1); });
+    const ranked = sentences.map((s,i)=>({s,score:scores[i],i})).sort((a,b)=>b.score-a.score);
+    const keepCount = Math.max(1, Math.round(ranked.length * (1 - targetPct/100)));
+    const top = ranked.slice(0,keepCount).sort((a,b)=>a.i-b.i).map(x=>x.s);
+    return {ok:true,output: formatOutput(top, format), keepCount, total: sentences.length};
+  }
+  function formatOutput(lines,fmt){ if(fmt==='bullets') return lines.map(l=>'• '+l).join('\n'); if(fmt==='headline') return lines.slice(0,1).join(' '); if(fmt==='tweet') return lines.join(' ').slice(0,280); return lines.join(' '); }
+
+  // Preview and diff rendering
+  function renderPreview(summary, original){ if(!summary){ preview.textContent=''; return; }
+    if(showDiff.checked && original){ const diffHtml = diffHighlight(original, summary); // safe insertion via text nodes replaced with wrappers
+      // we'll render as text with simple markers
+      preview.innerHTML = ''; const wrapper = document.createElement('div'); wrapper.innerHTML = diffHtml; preview.appendChild(wrapper);
+    } else { preview.textContent = summary; }
+  }
+
+  // Very lightweight diff: mark sentences removed
+  function diffHighlight(orig, summary){ const oSents = orig.split(/(?<=[.!?])\s+/).filter(Boolean); const sSents = summary.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const kept = new Set(sSents.map(s=>s.trim())); return oSents.map(s=> kept.has(s.trim())? '<span>'+escapeHtml(s)+'</span>' : '<span class="diff-rem">'+escapeHtml(s)+'</span>' ).join(' ');
+  }
+
+  // Stats
+  function updateCounts(){ const text = input.value||''; const words = (text.match(/\b\w+\b/g)||[]).length; const chars = text.length; countsEl.textContent = `Words: ${words} · Chars: ${chars}`; }
+  function updateStats(orig, short){ const ow = (orig.match(/\b\w+\b/g)||[]).length; const sw = (short.match(/\b\w+\b/g)||[]).length; origWordsEl.textContent = ow; shortWordsEl.textContent = sw; const pct = ow? Math.round((1 - (sw/ow))*100) : 0; reductionPctEl.textContent = pct+'%'; retentionEl.textContent = estimateRetention(orig, short); }
+  function estimateRetention(o,s){ // naive heuristic
+    const ow = (o.match(/\b\w+\b/g)||[]).length; const sw = (s.match(/\b\w+\b/g)||[]).length; if(ow===0) return '—'; const r = Math.round((sw/ow)*100); if(r>70) return 'High'; if(r>40) return 'Medium'; return 'Low'; }
+
+  // Copy / Download
+  function copyOutput(){ const text = lastSummary || ''; if(!text) return showToast('Nothing to copy'); navigator.clipboard?.writeText(text).then(()=>showToast('Copied')).catch(()=>{ fallbackCopy(text); }); }
+  function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); showToast('Copied (fallback)'); }catch(e){ showToast('Copy failed'); } ta.remove(); }
+  function downloadOutput(){ const text = lastSummary||''; const blob = new Blob([text],{type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'summary.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Download started'); }
+
+  // Clipboard paste
+  async function pasteFromClipboard(){ try{ const text = await navigator.clipboard.readText(); if(text) { input.value = text; updateCounts(); if(autoMode.checked) scheduleShorten(); showToast('Pasted from clipboard'); } else showToast('Clipboard empty'); }catch(e){ showToast('Paste failed'); } }
+
+  // History
+  function saveToHistory(original, summary){ try{ const rec = {time:Date.now(),orig: original.slice(0,1000), summary: summary.slice(0,1000)}; history.unshift(rec); history = history.slice(0,20); localStorage.setItem(historyKey, JSON.stringify(history)); renderHistoryList(); }catch(e){} }
+  function loadHistory(){ try{ const raw = localStorage.getItem(historyKey); return raw? JSON.parse(raw):[]; }catch(e){ return []; } }
+  function renderHistoryList(){ historyList.innerHTML = history.map((h,i)=>{ const d = new Date(h.time).toLocaleString(); return `<div style="padding:8px;border-bottom:1px solid rgba(11,26,43,0.04)"><div style="font-weight:600">${d}</div><div style="font-size:0.9rem;color:var(--muted)">${escapeHtml(h.orig.slice(0,200))}</div><div style="margin-top:6px"><button data-idx="${i}" class="btn ghost history-restore">Restore</button></div></div>` }).join(''); document.querySelectorAll('.history-restore').forEach(b=>b.addEventListener('click',e=>{ const i = Number(e.currentTarget.dataset.idx); if(history[i]){ input.value = history[i].orig; updateCounts(); renderPreview(history[i].summary, history[i].orig); showToast('Restored from history'); } })); }
+  function openHistory(){ historyModal.style.display='flex'; }
+  function closeHistoryModal(){ historyModal.style.display='none'; }
+
+  // Undo/redo simple
+  function recordSnapshot(){ undoStack.push(input.value); if(undoStack.length>50) undoStack.shift(); redoStack=[]; }
+  function undo(){ if(!undoStack.length) return; redoStack.push(input.value); input.value = undoStack.pop(); updateCounts(); showToast('Undone'); }
+
+  // Helpers
+  function showToast(msg,timeout=1800){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; toasts.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, timeout); }
+  function recordSnapshot(){ undoStack.push(input.value); if(undoStack.length>50) undoStack.shift(); }
+
+  function clearInput(){ input.value=''; updateCounts(); renderPreview('', ''); showToast('Cleared'); }
+
+  function toggleEdit(){ if(preview.isContentEditable){ preview.contentEditable='false'; preview.style.border='1px solid rgba(11,26,43,0.06)'; editToggle.textContent='Edit Output'; } else { preview.contentEditable='true'; preview.style.border='1px dashed var(--blue-500)'; preview.focus(); editToggle.textContent='Lock Output'; } }
+
+  // Minimal escape
+  function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // init
+  init();
+
+})();
+</script>
+</body>
+</html>
