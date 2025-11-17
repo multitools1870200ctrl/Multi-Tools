@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Text Case Converter — Bright Blue Theme</title>
+  <meta name="description" content="Advanced Text Case Converter — Upper, Lower, Title, Sentence, Toggle. Responsive, accessible, animated." />
+  <style>
+    /* Theme variables */
+    :root{
+      --blue-500:#0d6efd;
+      --blue-600:#0b5ed7;
+      --blue-100:#e9f3ff;
+      --white:#ffffff;
+      --text:#0b1a2b;
+      --muted:#6c7a89;
+      --success:#28a745;
+      --radius:12px;
+      --shadow: 0 8px 20px rgba(13,110,253,0.08);
+      --glass: rgba(255,255,255,0.6);
+      --ui-padding:14px;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{ --white:#071126; --blue-100: rgba(9,30,66,0.4); --text:#e6eefc; }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg,var(--blue-100),var(--white));
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:20px;
+    }
+
+    /* App container */
+    .app{max-width:1100px;margin:0 auto;background:var(--white);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px;gap:12px}
+    .title{display:flex;align-items:center;gap:12px}
+    .brand{font-weight:700;font-size:1.1rem}
+    .subtitle{font-size:.9rem;color:var(--muted)}
+    .actions{display:flex;gap:8px;align-items:center}
+
+    /* Main area */
+    .main{display:grid;grid-template-columns:1fr;gap:16px;padding:18px}
+    @media(min-width:900px){.main{grid-template-columns:1fr 440px}}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.9), var(--white));border-radius:12px;padding:12px}
+
+    /* Editor */
+    .editor{display:flex;flex-direction:column;gap:8px}
+    textarea{width:100%;min-height:180px;resize:vertical;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);font-size:1rem;line-height:1.45;color:var(--text)}
+    .input-row{display:flex;gap:8px;align-items:center}
+    .small-btn{background:transparent;border:1px solid rgba(11,26,43,0.06);padding:8px 10px;border-radius:9px;cursor:pointer}
+
+    /* Buttons */
+    .btn-row{display:flex;flex-wrap:wrap;gap:8px}
+    .btn{background:var(--blue-500);color:var(--white);border:none;padding:10px 12px;border-radius:10px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;box-shadow:none;transition:transform .18s cubic-bezier(.2,.9,.2,1),box-shadow .18s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(13,110,253,0.12)}
+    .btn.ghost{background:transparent;color:var(--blue-600);border:1px solid var(--blue-100)}
+    .btn.secondary{background:var(--white);color:var(--blue-600);border:1px solid rgba(11,26,43,0.06)}
+
+    /* Output pane */
+    .output{display:flex;flex-direction:column;gap:8px}
+    .output .preview{white-space:pre-wrap;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);min-height:160px}
+    .copy-inline{float:right;cursor:pointer;font-size:.9rem;color:var(--blue-600)}
+
+    /* Stats */
+    .stats{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:0.9rem}
+
+    /* Footer */
+    footer{padding:12px 18px;background:linear-gradient(180deg, rgba(13,110,253,0.03), transparent);display:flex;justify-content:space-between;align-items:center}
+    .shortcuts{font-size:0.85rem;color:var(--muted)}
+
+    /* Toasts */
+    .toasts{position:fixed;right:18px;bottom:18px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{background:var(--white);padding:10px 12px;border-radius:10px;box-shadow:var(--shadow);border-left:4px solid var(--blue-500;);animation:toast-in .32s both}
+    @keyframes toast-in{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+    /* Modal (find/replace) */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(6,12,24,0.4);display:flex;align-items:center;justify-content:center}
+    .modal{background:var(--white);padding:16px;border-radius:12px;max-width:720px;width:90%}
+
+    /* Small helpers */
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:8px;align-items:center}
+    .kbd{background:#f6f8fb;border:1px solid rgba(11,26,43,0.04);padding:2px 6px;border-radius:6px;font-size:0.8rem}
+    .hidden{display:none}
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion:reduce){
+      .btn, .toast{transition:none;animation:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="title">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect width="24" height="24" rx="6" fill="var(--blue-500)"></rect><path d="M7 9h10M7 15h6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>
+          <div class="brand">Text Case Converter</div>
+          <div class="subtitle">Uppercase · Lowercase · Title · Sentence · Toggle — bright blue theme</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="small-btn" id="downloadBtn" title="Download converted text (Ctrl/Cmd + D)">Download</button>
+        <button class="small-btn" id="historyBtn" title="Show history">History</button>
+        <button class="small-btn" id="findBtn" title="Find & Replace (F)">Find</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card editor" aria-labelledby="editorLabel">
+        <label id="editorLabel" class="muted">Input</label>
+        <div>
+          <div class="input-row">
+            <textarea id="input" placeholder="Paste or type text here…" aria-label="Text input"></textarea>
+          </div>
+          <div class="row" style="justify-content:space-between;margin-top:6px;">
+            <div class="stats" id="liveStats">
+              <div id="wordCount">Words: 0</div>
+              <div id="charCount">Chars: 0</div>
+              <div id="lineCount">Lines: 0</div>
+              <div id="sentenceCount">Sentences: 0</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="small-btn" id="clearBtn" title="Clear input">Clear</button>
+              <div class="muted">Theme</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="btn-row" role="toolbar" aria-label="Conversion tools">
+            <button class="btn" data-action="upper" title="Uppercase (Ctrl/Cmd+U)">UPPERCASE</button>
+            <button class="btn" data-action="lower" title="Lowercase (Ctrl/Cmd+L)">lowercase</button>
+            <button class="btn" data-action="title" title="Title Case (Ctrl/Cmd+T)">Title Case</button>
+            <button class="btn" data-action="sentence" title="Sentence Case (Ctrl/Cmd+S)">Sentence case</button>
+            <button class="btn" data-action="toggle" title="Toggle Case (Ctrl/Cmd+K)">tOGGLE cASE</button>
+            <button class="btn ghost" data-action="proper" title="Sentence & Proper (attempt)">Sentence & Proper</button>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn secondary" id="copyOutput">Copy Output</button>
+          <button class="btn secondary" id="undoBtn" title="Undo (Ctrl/Cmd+Z)">Undo</button>
+          <button class="btn secondary" id="redoBtn" title="Redo (Ctrl/Cmd+Y)">Redo</button>
+          <button class="btn secondary" id="resetBtn">Reset to Original</button>
+        </div>
+      </section>
+
+      <aside class="card output" aria-labelledby="outputLabel">
+        <label id="outputLabel" class="muted">Output</label>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="muted">Preview (live)</div>
+          <div class="row">
+            <div class="muted">Find: <span id="findPreview" class="muted"></span></div>
+          </div>
+        </div>
+
+        <div id="preview" class="preview" role="region" aria-live="polite" tabindex="0">&nbsp;</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div class="stats muted" id="outStats">Reading time: 0 min</div>
+          <div style="display:flex;gap:8px">
+            <button class="small-btn" id="copyParaBtn" title="Copy paragraph">Copy</button>
+            <button class="small-btn" id="downloadTxt" title="Download">Download</button>
+          </div>
+        </div>
+
+        <details style="margin-top:12px">
+          <summary class="muted">Advanced / Accessibility</summary>
+          <div style="margin-top:8px">
+            <div id="accessWarnings" class="muted"></div>
+          </div>
+        </details>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="shortcuts">Shortcuts: <span class="kbd">Ctrl/Cmd+U</span> Upper <span class="kbd">Ctrl/Cmd+L</span> Lower <span class="kbd">Ctrl/Cmd+T</span> Title</div>
+      <div class="muted">Made for your multi-tool site · <button class="small-btn" id="clearHistory">Clear History</button></div>
+    </footer>
+
+    <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Modal: Find & Replace -->
+    <div id="findModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="findModalLabel">
+      <div class="modal-backdrop">
+        <div class="modal">
+          <h3 id="findModalLabel">Find & Replace</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <input id="findInput" placeholder="Find" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(11,26,43,0.06)">
+            <input id="replaceInput" placeholder="Replace with" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(11,26,43,0.06)">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+            <label><input type="checkbox" id="regexToggle"> Regex</label>
+            <label><input type="checkbox" id="caseToggle"> Case-sensitive</label>
+            <div style="flex:1"></div>
+            <button class="btn" id="applyReplace">Apply</button>
+            <button class="small-btn" id="closeFind">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/*
+  Text Case Converter — Single-file implementation
+  Features: live conversion, debounce, undo/redo, history (localStorage), toasts, find/replace, Web Worker fallback for large text
+*/
+(function(){
+  // Elements
+  const input = document.getElementById('input');
+  const preview = document.getElementById('preview');
+  const liveStats = {word:document.getElementById('wordCount'),char:document.getElementById('charCount'),line:document.getElementById('lineCount'),sent:document.getElementById('sentenceCount')};
+  const outStats = document.getElementById('outStats');
+  const toasts = document.getElementById('toasts');
+  const copyOutputBtn = document.getElementById('copyOutput');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const downloadTxt = document.getElementById('downloadTxt');
+  const clearBtn = document.getElementById('clearBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  const findBtn = document.getElementById('findBtn');
+  const findModal = document.getElementById('findModal');
+  const findInput = document.getElementById('findInput');
+  const replaceInput = document.getElementById('replaceInput');
+  const regexToggle = document.getElementById('regexToggle');
+  const caseToggle = document.getElementById('caseToggle');
+  const applyReplace = document.getElementById('applyReplace');
+  const closeFind = document.getElementById('closeFind');
+  const historyBtn = document.getElementById('historyBtn');
+  const historyKey = 'textcase_history_v1';
+  const originalKey = 'textcase_original_v1';
+
+  // State
+  let originalText = '';
+  let history = loadHistory();
+  let undoStack = [];
+  let redoStack = [];
+  let currentText = '';
+  let debounceTimer = null;
+  let liveDebounce = 180; // ms
+  let worker = null;
+  let useWorker = true;
+
+  // Init
+  function init(){
+    attachEvents();
+    updatePreview('');
+    restoreOriginalIfAny();
+    tryInitWorker();
+  }
+
+  function tryInitWorker(){
+    if(!window.Worker){ useWorker=false; return; }
+    // Create worker from blob so single-file remains self-contained
+    const workerCode = `
+      self.onmessage = function(e){
+        const {id,action,text,options} = e.data;
+        function titleCase(str){
+          // simple title-case implementation with small words rule
+          const small = new Set(['a','an','the','and','or','nor','but','for','so','yet','to','of','in','on','at','by']);
+          return str.split(/(\s+)/).map(token=>{
+            if(token.trim().length===0) return token;
+            // words with hyphen
+            return token.split(/(-)/).map(part=>{
+              if(part==='-') return part;
+              if(part.length===0) return part;
+              const lower = part.toLowerCase();
+              if(small.has(lower)) return lower;
+              return part.charAt(0).toUpperCase()+part.slice(1).toLowerCase();
+            }).join('');
+          }).join('');
+        }
+        function sentenceCase(str){
+          // split heuristically
+          return str.replace(/([^.!?\n]+[.!?]?)(\s|$)/g,(m,grp,space)=>{
+            let s = grp.trim();
+            if(s.length===0) return '';
+            return s.charAt(0).toUpperCase()+s.slice(1).toLowerCase() + (space||' ');
+          });
+        }
+        function toggleCase(str){
+          return Array.from(str).map(ch=>{ if(ch>= 'a' && ch<='z') return ch.toUpperCase(); if(ch>='A' && ch<='Z') return ch.toLowerCase(); return ch;}).join('');
+        }
+        function lower(str){return str.toLowerCase();}
+        function upper(str){return str.toUpperCase();}
+        let result='';
+        try{
+          switch(action){
+            case 'upper': result = upper(text); break;
+            case 'lower': result = lower(text); break;
+            case 'title': result = titleCase(text); break;
+            case 'sentence': result = sentenceCase(text); break;
+            case 'toggle': result = toggleCase(text); break;
+            case 'proper': result = sentenceCase(titleCase(text)); break;
+            default: result = text; break;
+          }
+        }catch(err){ result = text }
+        self.postMessage({id,result});
+      }
+    `;
+    const blob = new Blob([workerCode],{type:'application/javascript'});
+    worker = new Worker(URL.createObjectURL(blob));
+    worker.onmessage = function(e){
+      const {id,result} = e.data;
+      // emit custom event
+      const ev = new CustomEvent('workerResult',{detail:{id,result}});
+      window.dispatchEvent(ev);
+    };
+  }
+
+  // Event wiring
+  function attachEvents(){
+    document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',onAction));
+    input.addEventListener('input',onInput);
+    copyOutputBtn.addEventListener('click',()=>copyToClipboard(currentText));
+    document.getElementById('copyParaBtn').addEventListener('click',()=>copyToClipboard(currentText));
+    downloadBtn.addEventListener('click',()=>downloadText(currentText));
+    downloadTxt.addEventListener('click',()=>downloadText(currentText));
+    clearBtn.addEventListener('click',clearInput);
+    resetBtn.addEventListener('click',resetToOriginal);
+    undoBtn.addEventListener('click',undo);
+    redoBtn.addEventListener('click',redo);
+    findBtn.addEventListener('click',openFind);
+    document.getElementById('findBtn').addEventListener('click',openFind);
+    historyBtn.addEventListener('click',showHistory);
+    document.getElementById('historyBtn').addEventListener('click',showHistory);
+    closeFind.addEventListener('click',closeFindModal);
+    applyReplace.addEventListener('click',applyFindReplace);
+    document.getElementById('clearHistory').addEventListener('click',clearHistory);
+
+    // keyboard shortcuts
+    window.addEventListener('keydown',e=>{
+      if((e.ctrlKey||e.metaKey) && !e.shiftKey){
+        switch(e.key.toLowerCase()){
+          case 'u': e.preventDefault(); doConvert('upper'); break;
+          case 'l': e.preventDefault(); doConvert('lower'); break;
+          case 't': e.preventDefault(); doConvert('title'); break;
+          case 's': e.preventDefault(); doConvert('sentence'); break;
+          case 'k': e.preventDefault(); doConvert('toggle'); break;
+          case 'z': e.preventDefault(); undo(); break;
+          case 'y': e.preventDefault(); redo(); break;
+          case 'd': e.preventDefault(); downloadText(currentText); break;
+          case 'c': // copy only when preview focused
+            if(document.activeElement===preview){ e.preventDefault(); copyToClipboard(currentText); }
+            break;
+        }
+      }
+      if(e.key==='f' && !e.metaKey && !e.ctrlKey){ openFind(); }
+    });
+
+    // worker results
+    window.addEventListener('workerResult',e=>{
+      const {id,result} = e.detail;
+      // call pending resolver saved in pending map
+      if(pendingWorkers[id]){ pendingWorkers[id](result); delete pendingWorkers[id]; }
+    });
+
+    // button for download in header
+    downloadBtn.addEventListener('click',()=>downloadText(currentText));
+
+    // input focus: maintain original
+    input.addEventListener('focus',()=>{
+      if(!originalText) originalText = input.value;
+      try{ localStorage.setItem(originalKey, originalText); }catch(e){}
+    });
+  }
+
+  // Pending worker promises
+  const pendingWorkers = {};
+  let workerIdCounter = 1;
+  function runWorker(action,text){
+    return new Promise((resolve, reject)=>{
+      if(!worker || !useWorker){ resolve(null); return; }
+      const id = workerIdCounter++;
+      pendingWorkers[id] = resolve;
+      worker.postMessage({id,action,text});
+      // fallback timeout
+      setTimeout(()=>{ if(pendingWorkers[id]){ resolve(null); delete pendingWorkers[id]; } }, 1500);
+    });
+  }
+
+  // Conversion orchestrator
+  async function convert(action,text){
+    // for very large text, use web worker
+    if(useWorker && text.length>200000){
+      const result = await runWorker(action,text);
+      if(result!==null) return result;
+    }
+    // fallback to main thread
+    switch(action){
+      case 'upper': return text.toUpperCase();
+      case 'lower': return text.toLowerCase();
+      case 'toggle': return toggleCase(text);
+      case 'title': return titleCase(text);
+      case 'sentence': return sentenceCase(text);
+      case 'proper': return sentenceCase(titleCase(text));
+      default: return text;
+    }
+  }
+
+  // Conversion helper functions
+  function toggleCase(str){
+    return Array.from(str).map(ch=>{ if(ch>='a' && ch<='z') return ch.toUpperCase(); if(ch>='A' && ch<='Z') return ch.toLowerCase(); return ch;}).join('');
+  }
+
+  function titleCase(str){
+    // basic title case with small words rules
+    const small = new Set(['a','an','the','and','or','nor','but','for','so','yet','to','of','in','on','at','by']);
+    return str.split(/(\s+)/).map(token=>{
+      if(token.trim().length===0) return token;
+      return token.split(/(-)/).map(part=>{
+        if(part==='-') return part;
+        if(part.length===0) return part;
+        const lower = part.toLowerCase();
+        if(small.has(lower)) return lower;
+        return part.charAt(0).toUpperCase()+part.slice(1).toLowerCase();
+      }).join('');
+    }).join('');
+  }
+
+  function sentenceCase(text){
+    // naive sentence splitter that tries to avoid some abbreviations
+    const abbr = ['Mr.','Mrs.','Ms.','Dr.','Prof.','Inc.','Ltd.','Jr.','Sr.'];
+    // replace newlines with marker to preserve
+    const parts = text.split(/([.!?]\s+|\n+)/g);
+    let out='';
+    for(let i=0;i<parts.length;i++){
+      const p = parts[i];
+      if(p.match(/[.!?]\s+|\n+/)) { out += p; continue; }
+      const trimmed = p.trim();
+      if(trimmed.length===0){ out += p; continue; }
+      const first = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+      out += p.replace(trimmed, first);
+    }
+    return out;
+  }
+
+  // Input handling
+  function onInput(){
+    // snapshot early for undo stack on typing pause
+    if(debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(()=>{
+      recordSnapshot();
+    },800);
+    // update counts (fast)
+    updateCounts(input.value);
+    // live preview debounce
+    if(liveDebounce>0){
+      if(this.previewDeb) clearTimeout(this.previewDeb);
+      this.previewDeb = setTimeout(()=>{ updatePreview(input.value); }, liveDebounce);
+    } else updatePreview(input.value);
+  }
+
+  // Update counts
+  function updateCounts(text){
+    const words = text.trim().length? text.trim().split(/[\s\n]+/).filter(Boolean).length : 0;
+    const chars = text.length;
+    const lines = text.split(/\n/).length;
+    const sentences = (text.match(/[.!?]+/g)||[]).length;
+    liveStats.word.textContent = 'Words: '+words;
+    liveStats.char.textContent = 'Chars: '+chars;
+    liveStats.line.textContent = 'Lines: '+lines;
+    liveStats.sent.textContent = 'Sentences: '+sentences;
+  }
+
+  // Update preview (output)
+  async function updatePreview(text){
+    // by default show original text until conversion applied
+    currentText = text;
+    preview.textContent = text || '\u00A0';
+    outStats.textContent = 'Reading time: '+estimateReadingTime(text)+' min';
+  }
+
+  function estimateReadingTime(text){
+    const words = text.trim().length? text.trim().split(/[\s\n]+/).filter(Boolean).length : 0;
+    return Math.max(0, Math.round(words/200));
+  }
+
+  // Conversion button handler
+  async function onAction(e){
+    const action = e.currentTarget.dataset.action;
+    doConvert(action);
+  }
+
+  async function doConvert(action){
+    const text = input.value;
+    addHistory({time:Date.now(),action,preview:text.slice(0,300)});
+    showToast('Converting…');
+    const result = await convert(action, text);
+    // highlight diff
+    highlightChange(result);
+    // set preview and currentText
+    currentText = result;
+    preview.textContent = result || '\u00A0';
+    outStats.textContent = 'Reading time: '+estimateReadingTime(result)+' min';
+    recordSnapshot({input:text,output:result});
+    showToast('Converted — '+action);
+  }
+
+  function highlightChange(newText){
+    preview.style.transition='opacity .22s';
+    preview.style.opacity='0.4';
+    setTimeout(()=>{ preview.style.opacity='1'; },220);
+  }
+
+  // Copy
+  async function copyToClipboard(text){
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast('Copied!');
+    }catch(e){
+      // fallback
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); showToast('Copied!'); }catch(err){ showToast('Copy failed — select and copy manually'); } ta.remove();
+    }
+  }
+
+  // Download
+  function downloadText(text){
+    const blob = new Blob([text||''],{type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'converted.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    showToast('Download started');
+  }
+
+  // Toasts
+  function showToast(msg,timeout=2000){
+    const el = document.createElement('div'); el.className='toast'; el.textContent = msg; toasts.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='0'; el.addEventListener('transitionend',()=>el.remove()); el.remove(); try{ el.remove(); }catch(e){} }, timeout);
+  }
+
+  // History (localStorage)
+  function loadHistory(){
+    try{ const raw = localStorage.getItem(historyKey); return raw? JSON.parse(raw):[];}catch(e){ return []; }
+  }
+  function saveHistory(){ try{ localStorage.setItem(historyKey, JSON.stringify(history.slice(0,40))); }catch(e){} }
+  function addHistory(item){ history.unshift(item); if(history.length>40) history.pop(); saveHistory(); }
+  function showHistory(){
+    const list = history.map(h=> new Date(h.time).toLocaleString()+ ' — '+ (h.action||'edit') + ' — ' + (h.preview||'')).join('\n');
+    alert(list || 'No history yet');
+  }
+  function clearHistory(){ history = []; saveHistory(); showToast('History cleared'); }
+
+  // Undo/Redo
+  function recordSnapshot(forced){
+    const snapshot = {input: input.value, output: currentText, time: Date.now()};
+    // Avoid duplicates
+    const last = undoStack[undoStack.length-1];
+    if(!forced && last && last.input===snapshot.input) return;
+    undoStack.push(snapshot); if(undoStack.length>30) undoStack.shift();
+    redoStack = [];
+  }
+  function undo(){ if(!undoStack.length) return; const snap = undoStack.pop(); redoStack.push({input:input.value,output:currentText}); input.value = snap.input; currentText = snap.output; updateCounts(input.value); updatePreview(currentText); showToast('Undone'); }
+  function redo(){ if(!redoStack.length) return; const snap = redoStack.pop(); undoStack.push({input:input.value,output:currentText}); input.value = snap.input; currentText = snap.output; updateCounts(input.value); updatePreview(currentText); showToast('Redone'); }
+
+  // Reset
+  function resetToOriginal(){ const saved = localStorage.getItem(originalKey); if(saved){ input.value = saved; originalText = saved; updateCounts(saved); updatePreview(saved); showToast('Restored original'); } else { input.value=''; updateCounts(''); updatePreview(''); showToast('No original saved'); } }
+  function clearInput(){ input.value=''; updateCounts(''); updatePreview(''); showToast('Cleared'); }
+
+  // Find & Replace
+  function openFind(){ findModal.classList.remove('hidden'); findModal.querySelector('.modal-backdrop').style.display='flex'; findInput.focus(); }
+  function closeFindModal(){ findModal.querySelector('.modal-backdrop').style.display='none'; findModal.classList.add('hidden'); }
+  function applyFindReplace(){
+    const find = findInput.value;
+    const replace = replaceInput.value||'';
+    let text = input.value;
+    if(!find){ showToast('Enter search'); return; }
+    try{
+      if(regexToggle.checked){
+        const re = new RegExp(find, caseToggle.checked ? 'g' : 'gi');
+        text = text.replace(re, replace);
+      } else {
+        if(caseToggle.checked){ text = text.split(find).join(replace); }
+        else { const re = new RegExp(escapeRegExp(find), 'gi'); text = text.replace(re, replace); }
+      }
+      input.value = text; updateCounts(text); updatePreview(text); recordSnapshot(); showToast('Replace applied'); closeFindModal();
+    }catch(e){ showToast('Error in replace — check regex'); }
+  }
+  function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+  // Helpers
+  function restoreOriginalIfAny(){ try{ const o = localStorage.getItem(originalKey); if(o){ originalText=o; input.value=o; updateCounts(o); updatePreview(o); } }catch(e){} }
+
+  // Show small accessibility warnings
+  function runAccessibilityChecks(text){
+    const warnings = [];
+    // long sentences
+    const sentences = text.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+    sentences.forEach(s=>{ if(s.split(/\s+/).length>32) warnings.push('Long sentence detected (>'+32+' words)'); });
+    const out = document.getElementById('accessWarnings'); out.textContent = warnings.join('; ')||'No issues detected';
+  }
+
+  // initial call
+  init();
+
+})();
+</script>
+</body>
+</html>
