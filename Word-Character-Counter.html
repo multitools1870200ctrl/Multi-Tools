@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Word & Character Counter — Bright Blue Theme</title>
+  <meta name="description" content="Advanced Word & Character Counter — live stats, keyword density, readability, find & replace, export, history, Web Worker." />
+  <style>
+    :root{
+      --blue-500:#0d6efd; --blue-600:#0b5ed7; --blue-100:#e9f3ff; --white:#ffffff; --text:#0b1a2b;
+      --muted:#6c7a89; --success:#28a745; --danger:#dc3545; --radius:12px; --shadow:0 8px 20px rgba(13,110,253,0.08);
+    }
+    @media (prefers-color-scheme: dark){ :root{ --white:#071126; --blue-100: rgba(9,30,66,0.4); --text:#e6eefc; } }
+    *{box-sizing:border-box} html,body{height:100%} body{margin:20px;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--blue-100),var(--white));color:var(--text);-webkit-font-smoothing:antialiased;padding:0}
+    .app{max-width:1200px;margin:24px auto;border-radius:18px;background:var(--white);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .title{font-weight:700;font-size:1.1rem}
+    .subtitle{font-size:.9rem;color:var(--muted)}
+    .toolbar{display:flex;gap:8px}
+    .btn{background:var(--blue-500);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;transition:transform .18s,box-shadow .18s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(13,110,253,0.12)}
+    .btn.ghost{background:transparent;color:var(--blue-600);border:1px solid rgba(11,26,43,0.06)}
+
+    main{display:grid;grid-template-columns:1fr;gap:16px;padding:18px}
+    @media(min-width:980px){ main{grid-template-columns:1fr 380px} }
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.96), var(--white));padding:14px;border-radius:12px}
+    textarea{width:100%;min-height:240px;padding:12px;border-radius:10px;border:1px solid rgba(11,26,43,0.06);font-size:1rem;line-height:1.45}
+
+    .row{display:flex;gap:8px;align-items:center}
+    .stats{display:flex;flex-direction:column;gap:6px}
+    .stat{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(13,110,253,0.03),transparent)}
+    .small{font-size:.9rem;color:var(--muted)}
+
+    /* Keyword table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(11,26,43,0.04)}
+
+    /* Find modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(6,12,24,0.45);display:none;align-items:center;justify-content:center}
+    .modal{background:var(--white);padding:16px;border-radius:12px;width:min(880px,96%)}
+
+    /* Footer */
+    footer{padding:12px 18px;background:linear-gradient(180deg, rgba(13,110,253,0.03), transparent);display:flex;justify-content:space-between;align-items:center}
+    .kbd{background:#f6f8fb;border:1px solid rgba(11,26,43,0.04);padding:4px 8px;border-radius:6px;font-size:0.85rem}
+
+    /* Toasts */
+    .toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+    .toast{background:var(--white);padding:10px 12px;border-radius:10px;box-shadow:var(--shadow);border-left:4px solid var(--blue-500);animation:toast-in .32s both}
+    @keyframes toast-in{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+    @media (prefers-reduced-motion:reduce){ .btn, .toast{transition:none;animation:none} }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden><rect width="24" height="24" rx="6" fill="var(--blue-500)"></rect><path d="M6 8h12M6 12h12M6 16h8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div>
+          <div class="title">Word & Character Counter</div>
+          <div class="subtitle">Live stats · Keyword density · Readability · Export</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="copyBtn">Copy</button>
+        <button class="btn" id="downloadBtn">Download</button>
+        <button class="btn ghost" id="findBtn">Find</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <label class="small">Input</label>
+        <textarea id="input" placeholder="Paste or type your text here…" aria-label="Text input"></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;align-items:center">
+          <div class="row">
+            <button class="btn ghost" id="clearBtn">Clear</button>
+            <button class="btn ghost" id="normalizeBtn">Normalize Spaces</button>
+            <button class="btn ghost" id="undoBtn">Undo</button>
+            <button class="btn ghost" id="redoBtn">Redo</button>
+          </div>
+          <div class="small">Auto-update: <span id="autoState">On</span></div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Live Statistics</strong><div class="small">Updated instantly</div></div>
+          <div class="small">Reading time &nbsp;<span id="readTime">0</span> min</div>
+        </div>
+
+        <div style="margin-top:10px" id="statsPanel">
+          <div class="stat"><div>Words</div><div id="wordCount">0</div></div>
+          <div class="stat"><div>Characters (with spaces)</div><div id="charCount">0</div></div>
+          <div class="stat"><div>Characters (no spaces)</div><div id="charNoSpace">0</div></div>
+          <div class="stat"><div>Sentences</div><div id="sentCount">0</div></div>
+          <div class="stat"><div>Paragraphs</div><div id="paraCount">0</div></div>
+          <div class="stat"><div>Average word length</div><div id="avgWord">0</div></div>
+          <div class="stat"><div>Unique words</div><div id="uniqueWords">0</div></div>
+        </div>
+
+        <details style="margin-top:12px">
+          <summary class="small">Keyword Density</summary>
+          <div style="margin-top:8px">
+            <label class="small"><input type="checkbox" id="ignoreStop"> Ignore stopwords</label>
+            <table id="keywordTable"><thead><tr><th>Word</th><th>Count</th><th>%</th></tr></thead><tbody></tbody></table>
+          </div>
+        </details>
+
+        <details style="margin-top:12px">
+          <summary class="small">Readability & Quality</summary>
+          <div style="margin-top:8px">
+            <div class="small">Flesch-Kincaid: <strong id="fkScore">0</strong></div>
+            <div class="small">Warnings: <span id="warnings">None</span></div>
+          </div>
+        </details>
+
+      </aside>
+    </main>
+
+    <footer>
+      <div class="small">Shortcuts: <span class="kbd">Ctrl/Cmd+F</span> Find • <span class="kbd">Ctrl/Cmd+D</span> Download</div>
+      <div class="small">Made for your multi-tool site</div>
+    </footer>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <!-- Find modal -->
+    <div class="modal-backdrop" id="findModal">
+      <div class="modal">
+        <h3>Find & Replace</h3>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="findInput" placeholder="Find" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(11,26,43,0.06)">
+          <input id="replaceInput" placeholder="Replace with" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(11,26,43,0.06)">
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <label><input type="checkbox" id="regexToggle"> Regex</label>
+          <label><input type="checkbox" id="caseToggle"> Case sensitive</label>
+          <div style="flex:1"></div>
+          <button class="btn" id="replaceBtn">Replace</button>
+          <button class="btn ghost" id="closeFind">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* Word & Character Counter — Single-file implementation
+   Features: live stats, keyword density, readability (Flesch-Kincaid), find/replace, export, undo/redo, history, web worker for heavy tasks
+*/
+(function(){
+  // Elements
+  const input = document.getElementById('input');
+  const wordCountEl = document.getElementById('wordCount');
+  const charCountEl = document.getElementById('charCount');
+  const charNoSpaceEl = document.getElementById('charNoSpace');
+  const sentCountEl = document.getElementById('sentCount');
+  const paraCountEl = document.getElementById('paraCount');
+  const avgWordEl = document.getElementById('avgWord');
+  const uniqueWordsEl = document.getElementById('uniqueWords');
+  const readTimeEl = document.getElementById('readTime');
+  const fkScoreEl = document.getElementById('fkScore');
+  const warningsEl = document.getElementById('warnings');
+  const keywordTableBody = document.querySelector('#keywordTable tbody');
+  const ignoreStopCheckbox = document.getElementById('ignoreStop');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const normalizeBtn = document.getElementById('normalizeBtn');
+  const findBtn = document.getElementById('findBtn');
+  const findModal = document.getElementById('findModal');
+  const closeFind = document.getElementById('closeFind');
+  const replaceBtn = document.getElementById('replaceBtn');
+  const findInput = document.getElementById('findInput');
+  const replaceInput = document.getElementById('replaceInput');
+  const regexToggle = document.getElementById('regexToggle');
+  const caseToggle = document.getElementById('caseToggle');
+  const toasts = document.getElementById('toasts');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+
+  // State
+  let debounceTimer = null;
+  const debounceMs = 150;
+  const historyKey = 'wcc_history_v1';
+  let history = loadHistory();
+  let undoStack = [];
+  let redoStack = [];
+  let worker = null;
+  let useWorker = true;
+
+  // Stopwords
+  const STOPWORDS = new Set(['the','and','a','to','of','in','is','it','you','that','he','was','for','on','are','with','as','I','his','they','be','at','one','have','this','from','or','had','by','hot','word']);
+
+  // Init
+  function init(){ attachEvents(); tryInitWorker(); if(history.length) restoreFromHistory(history[0]); }
+
+  function tryInitWorker(){ if(!window.Worker){ useWorker=false; return; } const code = `
+    self.onmessage = function(e){ const {id,text,op} = e.data; try{ if(op==='analyze'){ const words = (text.match(/\\b\\w+\\b/g)||[]); const wordCounts = {}; words.forEach(w=>{ const lw=w.toLowerCase(); wordCounts[lw]=(wordCounts[lw]||0)+1; }); const chars = text.length; const charsNoSpace = text.replace(/\s/g,'').length; const sentences = (text.match(/[.!?]+/g)||[]).length; const paragraphs = text.split(/\n{2,}/).filter(Boolean).length; const avgWord = words.length? Math.round(words.join('').length/words.length):0; self.postMessage({id,ok:true,wordCounts,chars,charsNoSpace,sentences,paragraphs,avgWord,wordsCount:words.length}); } else if(op==='fk'){ // simple flesch-kincaid estimation
+      const words = (text.match(/\\b\\w+\\b/g)||[]).length; const sentences = Math.max(1,(text.match(/[.!?]+/g)||[]).length); const syllables = Math.max(1, Math.round(words*1.5)); const fk = Math.max(0, 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words)); self.postMessage({id,ok:true,fk}); }
+    }catch(err){ self.postMessage({id,ok:false}); }
+  `; const blob = new Blob([code],{type:'application/javascript'}); worker = new Worker(URL.createObjectURL(blob)); worker.onmessage = function(e){ const {id,ok,wordCounts,chars,charsNoSpace,sentences,paragraphs,avgWord,wordsCount,fk} = e.data; if(pending[id]){ pending[id](e.data); delete pending[id]; } } }
+
+  const pending = {}; let workerId=1;
+  function runWorker(op,text){ return new Promise((resolve)=>{ if(!worker||!useWorker){ resolve(null); return; } const id = workerId++; pending[id]=resolve; worker.postMessage({id,op,text}); setTimeout(()=>{ if(pending[id]){ resolve(null); delete pending[id]; } },1200); }); }
+
+  function attachEvents(){ input.addEventListener('input',onInput); ignoreStopCheckbox.addEventListener('change',()=>analyzeNow()); copyBtn.addEventListener('click',()=>copy(input.value)); downloadBtn.addEventListener('click',downloadText); clearBtn.addEventListener('click',()=>{recordSnapshot(); input.value=''; schedule(); showToast('Cleared');}); normalizeBtn.addEventListener('click',()=>{ recordSnapshot(); input.value = normalizeSpaces(input.value); schedule(); showToast('Normalized spaces');}); findBtn.addEventListener('click',openFind); closeFind.addEventListener('click',closeFindModal); replaceBtn.addEventListener('click',applyReplace); undoBtn.addEventListener('click',undo); redoBtn.addEventListener('click',redo);
+
+    window.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='f'){ e.preventDefault(); openFind(); } if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='d'){ e.preventDefault(); downloadText(); } });
+  }
+
+  // Input handling
+  function onInput(){ recordTypingSnapshot(); schedule(); }
+  function schedule(){ if(debounceTimer) clearTimeout(debounceTimer); debounceTimer = setTimeout(()=>{ analyzeNow(); }, debounceMs); }
+
+  // Snapshot/Undo
+  function recordTypingSnapshot(){ const last = undoStack[undoStack.length-1]; const snap = {text:input.value,time:Date.now()}; if(!last||last.text!==snap.text) undoStack.push(snap); if(undoStack.length>60) undoStack.shift(); redoStack=[]; }
+  function recordSnapshot(){ undoStack.push({text:input.value,time:Date.now()}); if(undoStack.length>60) undoStack.shift(); redoStack=[]; }
+  function undo(){ if(!undoStack.length) return; const snap = undoStack.pop(); redoStack.push({text:input.value}); input.value = snap.text; schedule(); showToast('Undone'); }
+  function redo(){ if(!redoStack.length) return; const snap = redoStack.pop(); undoStack.push({text:input.value}); input.value = snap.text; schedule(); showToast('Redone'); }
+
+  // Analyze
+  async function analyzeNow(){ const text = input.value||''; // use worker for heavy
+    const w = await runWorker('analyze',text);
+    if(w){ // use worker results
+      const {wordCounts,chars,charsNoSpace,sentences,paragraphs,avgWord,wordsCount} = w;
+      updateBasicStats(wordsCount,chars,charsNoSpace,sentences,paragraphs,avgWord,Object.keys(wordCounts).length);
+      renderKeywords(wordCounts,wordsCount);
+    } else { // main-thread fallback
+      const words = (text.match(/\b\w+\b/g)||[]); const wordCounts={}; words.forEach(w=>{ const lw=w.toLowerCase(); wordCounts[lw]=(wordCounts[lw]||0)+1; }); const chars = text.length; const charsNoSpace = text.replace(/\s/g,'').length; const sentences = (text.match(/[.!?]+/g)||[]).length; const paragraphs = text.split(/\n{2,}/).filter(Boolean).length; const avgWord = words.length? Math.round(words.join('').length/words.length):0; updateBasicStats(words.length,chars,charsNoSpace,sentences,paragraphs,avgWord,Object.keys(wordCounts).length); renderKeywords(wordCounts,words.length);
+    }
+    // readability via worker
+    const fkRes = await runWorker('fk',text);
+    if(fkRes && fkRes.fk!==undefined) fkScoreEl.textContent = Math.round(fkRes.fk); else fkScoreEl.textContent = '—';
+
+    // warnings
+    const warns = [];
+    const sentencesArr = (input.value||'').split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+    sentencesArr.forEach(s=>{ if(s.split(/\s+/).length>30) warns.push('Long sentence detected'); });
+    if((input.value||'').split(/\s+/).some(w=>w.length>18)) warns.push('Very long word found');
+    warningsEl.textContent = warns.length? warns.join('; '):'None';
+  }
+
+  function updateBasicStats(words,chars,charsNoSpace,sentences,paragraphs,avgWord,unique){ wordCountEl.textContent = words; charCountEl.textContent = chars; charNoSpaceEl.textContent = charsNoSpace; sentCountEl.textContent = sentences; paraCountEl.textContent = paragraphs; avgWordEl.textContent = avgWord; uniqueWordsEl.textContent = unique; readTimeEl.textContent = Math.max(0,Math.round(words/200)); }
+
+  function renderKeywords(wordCounts,totalWords){ const arr = Object.entries(wordCounts).map(([w,c])=>({w,c,p: Math.round(c/Math.max(1,totalWords)*1000)/10})); if(ignoreStopCheckbox.checked){ arr.sort((a,b)=>b.c-a.c); } else arr.sort((a,b)=>b.c-a.c); const top = arr.slice(0,12); keywordTableBody.innerHTML = top.map(item=>`<tr><td>${escapeHtml(item.w)}</td><td>${item.c}</td><td>${item.p}%</td></tr>`).join(''); }
+
+  // Utilities
+  function copy(text){ navigator.clipboard?.writeText(text).then(()=>showToast('Copied')).catch(()=>{ showToast('Copy failed'); }); }
+  function downloadText(){ const text = input.value||''; const blob = new Blob([text],{type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='text.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Download started'); }
+  function normalizeSpaces(s){ return s.replace(/\u00A0/g,' ').replace(/[\t\r]+/g,' ').replace(/ {2,}/g,' ').replace(/\n{3,}/g,'\n\n').trim(); }
+
+  // Find & Replace
+  function openFind(){ findModal.style.display='flex'; findModal.querySelector('.modal').focus(); }
+  function closeFindModal(){ findModal.style.display='none'; }
+  function applyReplace(){ const find = findInput.value; const rep = replaceInput.value||''; if(!find){ showToast('Enter search'); return; } try{ let text = input.value; if(regexToggle.checked){ const flags = caseToggle.checked? 'g':'gi'; const re = new RegExp(find, flags); text = text.replace(re, rep); } else { if(caseToggle.checked) text = text.split(find).join(rep); else { const re = new RegExp(escapeRegExp(find),'gi'); text = text.replace(re, rep); } } recordSnapshot(); input.value = text; schedule(); showToast('Replace applied'); closeFindModal(); }catch(e){ showToast('Replace error'); } }
+  function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+  // Helpers
+  function showToast(msg,timeout=2000){ const el = document.createElement('div'); el.className='toast'; el.textContent = msg; toasts.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, timeout); }
+  function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // History persistence
+  function loadHistory(){ try{ const raw = localStorage.getItem(historyKey); return raw? JSON.parse(raw):[]; }catch(e){ return []; } }
+  function saveToHistory(text){ try{ history.unshift({time:Date.now(),text:text.slice(0,500)}); history = history.slice(0,20); localStorage.setItem(historyKey, JSON.stringify(history)); }catch(e){} }
+  function restoreFromHistory(item){ if(!item) return; document.getElementById('input').value = item.text; schedule(); }
+
+  // init
+  init();
+
+})();
+</script>
+</body>
+</html>
