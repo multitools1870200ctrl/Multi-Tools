@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Reverser | Multi-Tool Website</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --gradient: linear-gradient(135deg, #4361ee, #3a0ca3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--gradient);
+            border-radius: 20px;
+            color: white;
+            box-shadow: var(--shadow);
+            transform: translateY(0);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        header:hover::before {
+            transform: translateX(100%);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .tool-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .tool-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section, .output-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-section:hover, .output-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-title i {
+            color: var(--accent);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            resize: vertical;
+            transition: var(--transition);
+            margin-bottom: 20px;
+            background: var(--light);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            background: white;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            background: var(--light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .option.active {
+            background: rgba(67, 97, 238, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .option input {
+            display: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: var(--light);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            transition: var(--transition);
+        }
+
+        .stats:hover {
+            background: #e9ecef;
+        }
+
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: auto;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(67, 97, 238, 0.5);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            transform: translateY(-3px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .output-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-text {
+            flex: 1;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 15px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            overflow-y: auto;
+            transition: var(--transition);
+            border: 2px dashed #e9ecef;
+            min-height: 200px;
+            margin-bottom: 20px;
+        }
+
+        .output-text:not(:empty) {
+            border-color: var(--success);
+            background: rgba(76, 201, 240, 0.05);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--success);
+            color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+            }
+        }
+
+        .flip-in {
+            animation: flipIn 0.6s ease-out;
+        }
+
+        @keyframes flipIn {
+            from {
+                transform: rotateX(90deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        .typewriter {
+            overflow: hidden;
+            border-right: 3px solid var(--primary);
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--primary) }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Text Reverser</h1>
+            <p class="subtitle">Flip, reverse, and transform your text in creative ways</p>
+        </header>
+        
+        <div class="tool-container">
+            <div class="input-section">
+                <h2 class="section-title"><i class="fas fa-keyboard"></i> Input Text</h2>
+                <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+                
+                <div class="options">
+                    <label class="option active">
+                        <input type="radio" name="reverseType" value="reverse" checked>
+                        <i class="fas fa-exchange-alt"></i> Reverse Text
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="reverseType" value="words">
+                        <i class="fas fa-text-width"></i> Reverse Words
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="reverseType" value="flip">
+                        <i class="fas fa-sync-alt"></i> Flip Text
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="reverseType" value="upsideDown">
+                        <i class="fas fa-undo-alt"></i> Upside Down
+                    </label>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="charCount">0</div>
+                        <div class="stat-label">Characters</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="wordCount">0</div>
+                        <div class="stat-label">Words</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="lineCount">0</div>
+                        <div class="stat-label">Lines</div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" id="reverseBtn">
+                        <i class="fas fa-magic"></i> Transform Text
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2 class="section-title"><i class="fas fa-file-export"></i> Output Text</h2>
+                
+                <div class="output-container">
+                    <div class="output-text" id="outputText"></div>
+                    
+                    <div class="buttons">
+                        <button class="btn btn-primary" id="copyBtn" disabled>
+                            <i class="far fa-copy"></i> Copy to Clipboard
+                        </button>
+                        <button class="btn btn-secondary" id="speakBtn" disabled>
+                            <i class="fas fa-volume-up"></i> Speak Text
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification" id="notification">
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationText">Text copied to clipboard!</span>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Text Reverser Tool &copy; 2023 | Part of Multi-Tool Website</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const inputText = document.getElementById('inputText');
+            const outputText = document.getElementById('outputText');
+            const reverseBtn = document.getElementById('reverseBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const speakBtn = document.getElementById('speakBtn');
+            const charCount = document.getElementById('charCount');
+            const wordCount = document.getElementById('wordCount');
+            const lineCount = document.getElementById('lineCount');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            const options = document.querySelectorAll('.option');
+            
+            // Character mapping for upside down text
+            const upsideDownMap = {
+                'a': 'ɐ', 'b': 'q', 'c': 'ɔ', 'd': 'p', 'e': 'ǝ', 'f': 'ɟ', 'g': 'ƃ',
+                'h': 'ɥ', 'i': 'ᴉ', 'j': 'ɾ', 'k': 'ʞ', 'l': 'l', 'm': 'ɯ', 'n': 'u',
+                'o': 'o', 'p': 'd', 'q': 'b', 'r': 'ɹ', 's': 's', 't': 'ʇ', 'u': 'n',
+                'v': 'ʌ', 'w': 'ʍ', 'x': 'x', 'y': 'ʎ', 'z': 'z',
+                'A': '∀', 'B': '𐐒', 'C': 'Ɔ', 'D': 'ᗡ', 'E': 'Ǝ', 'F': 'Ⅎ', 'G': '⅁',
+                'H': 'H', 'I': 'I', 'J': 'ſ', 'K': 'ꓘ', 'L': '˥', 'M': 'W', 'N': 'N',
+                'O': 'O', 'P': 'Ԁ', 'Q': 'Ό', 'R': 'ᴚ', 'S': 'S', 'T': '⊥', 'U': '∩',
+                'V': 'Λ', 'W': 'M', 'X': 'X', 'Y': '⅄', 'Z': 'Z',
+                '0': '0', '1': 'Ɩ', '2': 'ᄅ', '3': 'Ɛ', '4': 'ㄣ', '5': 'ϛ', '6': '9',
+                '7': 'ㄥ', '8': '8', '9': '6',
+                '.': '˙', ',': "'", '\'': ',', '"': ',,', '`': ',', '?': '¿', '!': '¡',
+                '[': ']', ']': '[', '(': ')', ')': '(', '{': '}', '}': '{', '<': '>', 
+                '>': '<', '&': '⅋', '_': '‾', ';': '؛', ':': ':'
+            };
+            
+            // Event Listeners
+            inputText.addEventListener('input', updateStats);
+            reverseBtn.addEventListener('click', transformText);
+            clearBtn.addEventListener('click', clearText);
+            copyBtn.addEventListener('click', copyToClipboard);
+            speakBtn.addEventListener('click', speakText);
+            
+            // Add event listeners to options
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    options.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    if (inputText.value.trim()) {
+                        transformText();
+                    }
+                });
+            });
+            
+            // Functions
+            function updateStats() {
+                const text = inputText.value;
+                const chars = text.length;
+                const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+                const lines = text ? text.split('\n').length : 0;
+                
+                // Animate counting
+                animateValue(charCount, parseInt(charCount.textContent), chars, 500);
+                animateValue(wordCount, parseInt(wordCount.textContent), words, 500);
+                animateValue(lineCount, parseInt(lineCount.textContent), lines, 500);
+                
+                // Enable/disable reverse button
+                reverseBtn.disabled = !text.trim();
+            }
+            
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const value = Math.floor(progress * (end - start) + start);
+                    element.textContent = value;
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+            
+            function transformText() {
+                const text = inputText.value;
+                if (!text.trim()) return;
+                
+                const selectedOption = document.querySelector('input[name="reverseType"]:checked').value;
+                let result = '';
+                
+                switch(selectedOption) {
+                    case 'reverse':
+                        result = text.split('').reverse().join('');
+                        break;
+                    case 'words':
+                        result = text.split(' ').reverse().join(' ');
+                        break;
+                    case 'flip':
+                        result = text.split('').map(char => {
+                            return upsideDownMap[char] || char;
+                        }).reverse().join('');
+                        break;
+                    case 'upsideDown':
+                        result = text.split('').map(char => {
+                            return upsideDownMap[char] || char;
+                        }).join('');
+                        break;
+                }
+                
+                // Add animation to output
+                outputText.classList.remove('flip-in');
+                void outputText.offsetWidth; // Trigger reflow
+                outputText.classList.add('flip-in');
+                
+                outputText.textContent = result;
+                
+                // Enable output buttons
+                copyBtn.disabled = false;
+                speakBtn.disabled = false;
+                
+                // Show notification
+                showNotification('Text transformed successfully!');
+            }
+            
+            function clearText() {
+                inputText.value = '';
+                outputText.textContent = '';
+                updateStats();
+                
+                // Disable buttons
+                reverseBtn.disabled = true;
+                copyBtn.disabled = true;
+                speakBtn.disabled = true;
+                
+                // Show notification
+                showNotification('Text cleared!');
+            }
+            
+            function copyToClipboard() {
+                const text = outputText.textContent;
+                if (!text) return;
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('Text copied to clipboard!');
+                }).catch(err => {
+                    showNotification('Failed to copy text!');
+                    console.error('Could not copy text: ', err);
+                });
+            }
+            
+            function speakText() {
+                const text = outputText.textContent;
+                if (!text) return;
+                
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1;
+                    window.speechSynthesis.speak(utterance);
+                    showNotification('Speaking text...');
+                } else {
+                    showNotification('Text-to-speech not supported in your browser');
+                }
+            }
+            
+            function showNotification(message) {
+                notificationText.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
