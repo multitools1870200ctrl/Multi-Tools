@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Encoder/Decoder | Web Utility Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #e63946;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gradient: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --gradient-accent: linear-gradient(135deg, #f72585, #b5179e);
+            --gradient-success: linear-gradient(135deg, #4cc9f0, #4895ef);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 30px;
+            background: var(--gradient);
+            border-radius: 25px;
+            color: white;
+            box-shadow: var(--shadow);
+            transform: translateY(0);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.8s;
+        }
+
+        header:hover::before {
+            transform: translateX(100%);
+        }
+
+        header:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.3);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(to right, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .tool-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 968px) {
+            .tool-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section, .output-section {
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .input-section::after, .output-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--gradient);
+            transition: var(--transition);
+        }
+
+        .input-section:hover, .output-section:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .input-section:hover::after, .output-section:hover::after {
+            width: 8px;
+            background: var(--gradient-accent);
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-title i {
+            color: var(--accent);
+            font-size: 1.8rem;
+        }
+
+        .code-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--light);
+            padding: 12px 20px;
+            border-radius: 12px 12px 0 0;
+            border: 2px solid #e9ecef;
+            border-bottom: none;
+        }
+
+        .language-label {
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 250px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 0 0 12px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            resize: vertical;
+            transition: var(--transition);
+            background: #fcfcfc;
+            line-height: 1.5;
+            tab-size: 4;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+            background: white;
+        }
+
+        .output-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-text {
+            flex: 1;
+            padding: 20px;
+            background: #fcfcfc;
+            border-radius: 0 0 12px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.5;
+            overflow-y: auto;
+            transition: var(--transition);
+            border: 2px solid #e9ecef;
+            min-height: 250px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .output-text.valid {
+            border-color: var(--success);
+            background: rgba(76, 201, 240, 0.05);
+        }
+
+        .output-text.invalid {
+            border-color: var(--danger);
+            background: rgba(230, 57, 70, 0.05);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label i {
+            color: var(--accent);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: var(--light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: normal;
+        }
+
+        .radio-label:hover {
+            background: #e9ecef;
+        }
+
+        .radio-label.active {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .radio-label input {
+            display: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: var(--light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: normal;
+        }
+
+        .checkbox-label:hover {
+            background: #e9ecef;
+        }
+
+        .checkbox-label.active {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .checkbox-label input {
+            display: none;
+        }
+
+        .conversion-stats {
+            display: flex;
+            justify-content: space-between;
+            background: var(--light);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            transition: var(--transition);
+        }
+
+        .conversion-stats:hover {
+            background: #e9ecef;
+        }
+
+        .stat-card {
+            text-align: center;
+            flex: 1;
+            padding: 0 15px;
+        }
+
+        .stat-card:not(:last-child) {
+            border-right: 1px solid #dee2e6;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        .positive {
+            color: var(--success);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 18px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.7s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(67, 97, 238, 0.5);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            transform: translateY(-5px);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            color: white;
+            box-shadow: 0 6px 20px rgba(76, 201, 240, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(76, 201, 240, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn:disabled::before {
+            display: none;
+        }
+
+        .url-examples {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            transition: var(--transition);
+        }
+
+        .url-examples:hover {
+            background: #e9ecef;
+        }
+
+        .examples-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .example-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .example-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .example-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .example-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+
+        .example-action {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            padding: 20px 30px;
+            background: var(--success);
+            color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--dark);
+            opacity: 0.7;
+            font-size: 0.95rem;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        /* URL Syntax Highlighting */
+        .url-protocol { color: var(--primary); font-weight: bold; }
+        .url-domain { color: var(--success); }
+        .url-path { color: var(--accent); }
+        .url-param { color: var(--warning); }
+        .url-value { color: var(--danger); }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(67, 97, 238, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.6s;
+        }
+
+        @keyframes progress {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .processing {
+            background: linear-gradient(270deg, #4361ee, #3a0ca3, #f72585, #4cc9f0);
+            background-size: 800% 800%;
+            animation: progress 3s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        .bounce {
+            animation: bounce 1s;
+        }
+
+        @keyframes highlight {
+            0% { background-color: rgba(76, 201, 240, 0.3); }
+            100% { background-color: transparent; }
+        }
+
+        .highlight {
+            animation: highlight 1.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="slide-in">
+            <h1><i class="fas fa-link"></i> URL Encoder/Decoder</h1>
+            <p class="subtitle">Encode and decode URLs with advanced options for web development and data processing</p>
+        </header>
+        
+        <div class="tool-container">
+            <div class="input-section slide-in" style="animation-delay: 0.1s">
+                <h2 class="section-title"><i class="fas fa-pencil-alt"></i> Input URL</h2>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="language-label">
+                            <i class="fas fa-globe"></i>
+                            <span id="inputType">URL</span>
+                        </div>
+                        <div class="code-stats">
+                            <div class="stat">
+                                <i class="fas fa-ruler"></i>
+                                <span id="inputSize">0 bytes</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-file-code"></i>
+                                <span id="inputLines">0 lines</span>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea id="inputUrl" placeholder="Enter URL to encode or encoded URL to decode..."></textarea>
+                </div>
+                
+                <div class="url-examples">
+                    <div class="examples-title">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Quick Examples</span>
+                    </div>
+                    <div class="example-list">
+                        <div class="example-item" data-example="Hello World!">
+                            <div class="example-text">Hello World!</div>
+                            <div class="example-action">Use →</div>
+                        </div>
+                        <div class="example-item" data-example="https://example.com/search?q=test query&category=books">
+                            <div class="example-text">https://example.com/search?q=test query&category=books</div>
+                            <div class="example-action">Use →</div>
+                        </div>
+                        <div class="example-item" data-example="Hello%20World%21">
+                            <div class="example-text">Hello%20World%21</div>
+                            <div class="example-action">Use →</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label><i class="fas fa-cog"></i> Operation</label>
+                        <div class="radio-group">
+                            <label class="radio-label active" id="encodeLabel">
+                                <input type="radio" name="operation" value="encode" checked id="encodeRadio">
+                                <i class="fas fa-check"></i>
+                                Encode URL
+                            </label>
+                            <label class="radio-label" id="decodeLabel">
+                                <input type="radio" name="operation" value="decode" id="decodeRadio">
+                                <i class="fas fa-check"></i>
+                                Decode URL
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label><i class="fas fa-sliders-h"></i> Encoding Options</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label active" id="fullUrlLabel">
+                                <input type="checkbox" checked id="fullUrl">
+                                <i class="fas fa-check"></i>
+                                Process Full URL
+                            </label>
+                            <label class="checkbox-label" id="componentLabel">
+                                <input type="checkbox" id="component">
+                                <i class="fas fa-check"></i>
+                                Component Encoding
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="convertBtn">
+                        <i class="fas fa-sync-alt"></i> Convert
+                    </button>
+                    <button class="btn btn-secondary" id="clearInputBtn">
+                        <i class="fas fa-eraser"></i> Clear Input
+                    </button>
+                </div>
+            </div>
+            
+            <div class="output-section slide-in" style="animation-delay: 0.2s">
+                <h2 class="section-title"><i class="fas fa-file-export"></i> Output Result</h2>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="language-label">
+                            <i class="fas fa-file-code"></i>
+                            <span id="outputType">Encoded URL</span>
+                        </div>
+                        <div class="code-stats">
+                            <div class="stat">
+                                <i class="fas fa-ruler"></i>
+                                <span id="outputSize">0 bytes</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-file-code"></i>
+                                <span id="outputLines">0 lines</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="output-text" id="outputUrl"></div>
+                </div>
+                
+                <div class="conversion-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="conversionRatio">1.0x</div>
+                        <div class="stat-label">Size Ratio</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="processingTime">0ms</div>
+                        <div class="stat-label">Processing Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="characterCount">0</div>
+                        <div class="stat-label">Characters</div>
+                    </div>
+                </div>
+                
+                <div class="url-examples">
+                    <div class="examples-title">
+                        <i class="fas fa-info-circle"></i>
+                        <span>URL Analysis</span>
+                    </div>
+                    <div class="example-list">
+                        <div class="example-item">
+                            <div class="example-text">Encoded Characters</div>
+                            <div class="example-action" id="encodedCount">0</div>
+                        </div>
+                        <div class="example-item">
+                            <div class="example-text">Spaces Converted</div>
+                            <div class="example-action" id="spaceCount">0</div>
+                        </div>
+                        <div class="example-item">
+                            <div class="example-text">Special Characters</div>
+                            <div class="example-action" id="specialCount">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" id="copyBtn" disabled>
+                        <i class="far fa-copy"></i> Copy Result
+                    </button>
+                    <button class="btn btn-primary" id="testBtn" disabled>
+                        <i class="fas fa-external-link-alt"></i> Test URL
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification" id="notification">
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationText">Conversion completed successfully!</span>
+        </div>
+    </div>
+    
+    <footer>
+        <p>URL Encoder/Decoder Tool &copy; 2023 | Web Development Utilities</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const inputUrl = document.getElementById('inputUrl');
+            const outputUrl = document.getElementById('outputUrl');
+            const inputType = document.getElementById('inputType');
+            const outputType = document.getElementById('outputType');
+            const inputSize = document.getElementById('inputSize');
+            const outputSize = document.getElementById('outputSize');
+            const inputLines = document.getElementById('inputLines');
+            const outputLines = document.getElementById('outputLines');
+            const encodeRadio = document.getElementById('encodeRadio');
+            const decodeRadio = document.getElementById('decodeRadio');
+            const encodeLabel = document.getElementById('encodeLabel');
+            const decodeLabel = document.getElementById('decodeLabel');
+            const fullUrl = document.getElementById('fullUrl');
+            const component = document.getElementById('component');
+            const fullUrlLabel = document.getElementById('fullUrlLabel');
+            const componentLabel = document.getElementById('componentLabel');
+            const convertBtn = document.getElementById('convertBtn');
+            const clearInputBtn = document.getElementById('clearInputBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const testBtn = document.getElementById('testBtn');
+            const conversionRatio = document.getElementById('conversionRatio');
+            const processingTime = document.getElementById('processingTime');
+            const characterCount = document.getElementById('characterCount');
+            const encodedCount = document.getElementById('encodedCount');
+            const spaceCount = document.getElementById('spaceCount');
+            const specialCount = document.getElementById('specialCount');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            const exampleItems = document.querySelectorAll('.example-item');
+            
+            // Event Listeners
+            inputUrl.addEventListener('input', updateInputStats);
+            encodeLabel.addEventListener('click', toggleOperation);
+            decodeLabel.addEventListener('click', toggleOperation);
+            fullUrlLabel.addEventListener('click', toggleCheckbox);
+            componentLabel.addEventListener('click', toggleCheckbox);
+            convertBtn.addEventListener('click', convertUrl);
+            clearInputBtn.addEventListener('click', clearInput);
+            copyBtn.addEventListener('click', copyToClipboard);
+            testBtn.addEventListener('click', testUrl);
+            
+            // Example click handlers
+            exampleItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const exampleText = this.getAttribute('data-example');
+                    inputUrl.value = exampleText;
+                    updateInputStats();
+                    convertUrl();
+                    
+                    // Add highlight animation to input
+                    inputUrl.classList.add('highlight');
+                    setTimeout(() => {
+                        inputUrl.classList.remove('highlight');
+                    }, 1500);
+                });
+            });
+            
+            // Initialize
+            updateInputStats();
+            updateOperation();
+            
+            // Functions
+            function toggleOperation(e) {
+                const label = e.currentTarget;
+                const radio = label.querySelector('input');
+                
+                // Uncheck all
+                encodeRadio.checked = false;
+                decodeRadio.checked = false;
+                encodeLabel.classList.remove('active');
+                decodeLabel.classList.remove('active');
+                
+                // Check selected
+                radio.checked = true;
+                label.classList.add('active');
+                
+                // Update UI
+                updateOperation();
+                
+                // Auto-convert if we have input
+                if (inputUrl.value.trim()) {
+                    convertUrl();
+                }
+            }
+            
+            function toggleCheckbox(e) {
+                const label = e.currentTarget;
+                const checkbox = label.querySelector('input');
+                
+                // For mutually exclusive checkboxes
+                if (checkbox.id === 'fullUrl') {
+                    fullUrl.checked = true;
+                    component.checked = false;
+                    fullUrlLabel.classList.add('active');
+                    componentLabel.classList.remove('active');
+                } else if (checkbox.id === 'component') {
+                    component.checked = true;
+                    fullUrl.checked = false;
+                    componentLabel.classList.add('active');
+                    fullUrlLabel.classList.remove('active');
+                }
+                
+                // Auto-convert if we have input
+                if (inputUrl.value.trim()) {
+                    convertUrl();
+                }
+            }
+            
+            function updateOperation() {
+                const isEncoding = encodeRadio.checked;
+                
+                if (isEncoding) {
+                    inputType.textContent = 'URL';
+                    outputType.textContent = 'Encoded URL';
+                    inputUrl.placeholder = 'Enter URL to encode...';
+                } else {
+                    inputType.textContent = 'Encoded URL';
+                    outputType.textContent = 'Decoded URL';
+                    inputUrl.placeholder = 'Enter encoded URL to decode...';
+                }
+                
+                // Clear output when switching modes
+                outputUrl.textContent = '';
+                outputUrl.className = 'output-text';
+                updateOutputStats();
+                copyBtn.disabled = true;
+                testBtn.disabled = true;
+                resetAnalysis();
+            }
+            
+            function updateInputStats() {
+                const text = inputUrl.value;
+                const size = new Blob([text]).size;
+                const lines = text ? text.split('\n').length : 0;
+                
+                inputSize.textContent = formatBytes(size);
+                inputLines.textContent = `${lines} lines`;
+                
+                // Enable/disable convert button
+                convertBtn.disabled = !text.trim();
+            }
+            
+            function updateOutputStats() {
+                const text = outputUrl.textContent;
+                const size = new Blob([text]).size;
+                const lines = text ? text.split('\n').length : 0;
+                
+                outputSize.textContent = formatBytes(size);
+                outputLines.textContent = `${lines} lines`;
+                characterCount.textContent = text.length;
+            }
+            
+            function resetAnalysis() {
+                encodedCount.textContent = '0';
+                spaceCount.textContent = '0';
+                specialCount.textContent = '0';
+            }
+            
+            function convertUrl() {
+                const isEncoding = encodeRadio.checked;
+                const inputText = inputUrl.value;
+                const processFullUrl = fullUrl.checked;
+                const useComponentEncoding = component.checked;
+                
+                if (!inputText.trim()) return;
+                
+                // Start performance measurement
+                const startTime = performance.now();
+                
+                // Add processing animation
+                const button = convertBtn;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                button.classList.add('processing');
+                
+                // Add conversion animation to output
+                outputUrl.classList.add('processing');
+                
+                // Simulate processing time for better UX
+                setTimeout(() => {
+                    let result, isValid = true, errorMessage = '';
+                    let encodedChars = 0, spaces = 0, specialChars = 0;
+                    
+                    try {
+                        if (isEncoding) {
+                            // Encoding mode
+                            if (processFullUrl) {
+                                // Parse and encode full URL
+                                try {
+                                    const url = new URL(inputText);
+                                    result = url.protocol + '//' + url.host + encodeURI(url.pathname + url.search + url.hash);
+                                } catch (e) {
+                                    // If it's not a valid URL, treat as text
+                                    result = encodeURIComponent(inputText);
+                                }
+                            } else if (useComponentEncoding) {
+                                // Component encoding (more aggressive)
+                                result = encodeURIComponent(inputText);
+                            } else {
+                                // Standard encoding
+                                result = encodeURI(inputText);
+                            }
+                            
+                            // Count encoded characters
+                            encodedChars = (result.match(/%/g) || []).length;
+                            spaces = (result.match(/%20/g) || []).length;
+                            specialChars = (result.match(/[^a-zA-Z0-9\-._~]/g) || []).length;
+                        } else {
+                            // Decoding mode
+                            try {
+                                if (processFullUrl) {
+                                    // Try to decode as full URL first
+                                    result = decodeURI(inputText);
+                                } else if (useComponentEncoding) {
+                                    // Component decoding
+                                    result = decodeURIComponent(inputText);
+                                } else {
+                                    // Standard decoding
+                                    result = decodeURI(inputText);
+                                }
+                            } catch (e) {
+                                // If standard decoding fails, try component decoding
+                                result = decodeURIComponent(inputText);
+                            }
+                            
+                            // Count decoded special characters
+                            encodedChars = (inputText.match(/%/g) || []).length;
+                            spaces = (result.match(/ /g) || []).length;
+                            specialChars = (result.match(/[^a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=]/g) || []).length;
+                        }
+                    } catch (error) {
+                        result = `Error: ${error.message}`;
+                        isValid = false;
+                        errorMessage = error.message;
+                    }
+                    
+                    // Calculate processing time
+                    const endTime = performance.now();
+                    const processTime = Math.round(endTime - startTime);
+                    
+                    // Remove animation
+                    button.innerHTML = originalText;
+                    button.classList.remove('processing');
+                    outputUrl.classList.remove('processing');
+                    
+                    // Add slide-in animation to output
+                    outputUrl.classList.remove('slide-in');
+                    void outputUrl.offsetWidth; // Trigger reflow
+                    outputUrl.classList.add('slide-in');
+                    
+                    // Apply syntax highlighting for URLs
+                    if (isValid && !isEncoding) {
+                        result = syntaxHighlightUrl(result);
+                        outputUrl.innerHTML = result;
+                    } else {
+                        outputUrl.textContent = result;
+                    }
+                    
+                    outputUrl.className = `output-text ${isValid ? 'valid' : 'invalid'}`;
+                    
+                    // Update output stats
+                    updateOutputStats();
+                    
+                    // Update conversion stats
+                    const inputSizeValue = new Blob([inputText]).size;
+                    const outputSizeValue = new Blob([result]).size;
+                    const ratio = inputSizeValue > 0 ? (outputSizeValue / inputSizeValue).toFixed(2) + 'x' : '1.0x';
+                    
+                    conversionRatio.textContent = ratio;
+                    processingTime.textContent = `${processTime}ms`;
+                    
+                    // Update analysis
+                    if (isValid) {
+                        encodedCount.textContent = encodedChars;
+                        spaceCount.textContent = spaces;
+                        specialCount.textContent = specialChars;
+                    } else {
+                        resetAnalysis();
+                    }
+                    
+                    // Enable output buttons
+                    copyBtn.disabled = !isValid;
+                    testBtn.disabled = !isValid || isEncoding;
+                    
+                    // Show notification
+                    if (isValid) {
+                        showNotification(`${isEncoding ? 'Encoded' : 'Decoded'} successfully!`);
+                    } else {
+                        showNotification(`Conversion failed: ${errorMessage}`, true);
+                    }
+                }, 600);
+            }
+            
+            function syntaxHighlightUrl(url) {
+                // Simple URL syntax highlighting
+                let highlighted = url;
+                
+                // Highlight protocol
+                highlighted = highlighted.replace(/(https?|ftp):\/\//g, '<span class="url-protocol">$1://</span>');
+                
+                // Highlight domain
+                highlighted = highlighted.replace(/(?<=:\/\/)([^\/\s]+)/g, '<span class="url-domain">$1</span>');
+                
+                // Highlight path
+                highlighted = highlighted.replace(/(?<=\.com)(\/[^\s?]*)/g, '<span class="url-path">$1</span>');
+                
+                // Highlight query parameters
+                highlighted = highlighted.replace(/(\?|&)([^=]+)=/g, '$1<span class="url-param">$2</span>=');
+                
+                // Highlight query values
+                highlighted = highlighted.replace(/(?<==)([^&]*)/g, '<span class="url-value">$1</span>');
+                
+                return highlighted;
+            }
+            
+            function clearInput() {
+                inputUrl.value = '';
+                outputUrl.textContent = '';
+                outputUrl.className = 'output-text';
+                updateInputStats();
+                updateOutputStats();
+                copyBtn.disabled = true;
+                testBtn.disabled = true;
+                resetAnalysis();
+                showNotification('Input cleared!');
+            }
+            
+            function copyToClipboard() {
+                const text = outputUrl.textContent;
+                if (!text) return;
+                
+                // Create a temporary textarea to copy from
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showNotification('Result copied to clipboard!');
+                    
+                    // Add bounce animation to copy button
+                    copyBtn.classList.add('bounce');
+                    setTimeout(() => {
+                        copyBtn.classList.remove('bounce');
+                    }, 1000);
+                } catch (err) {
+                    showNotification('Failed to copy result!', true);
+                    console.error('Could not copy text: ', err);
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            function testUrl() {
+                const text = outputUrl.textContent;
+                if (!text) return;
+                
+                // Check if it looks like a URL
+                if (text.match(/^https?:\/\//)) {
+                    window.open(text, '_blank');
+                    showNotification('URL opened in new tab!');
+                } else {
+                    showNotification('This does not appear to be a valid web URL', true);
+                }
+            }
+            
+            function showNotification(message, isError = false) {
+                notificationText.textContent = message;
+                notification.className = 'notification';
+                notification.classList.add(isError ? 'error' : 'show');
+                if (!isError) notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 4000);
+            }
+            
+            function formatBytes(bytes) {
+                if (bytes === 0) return '0 bytes';
+                
+                const k = 1024;
+                const sizes = ['bytes', 'KB', 'MB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        });
+    </script>
+</body>
+</html>
