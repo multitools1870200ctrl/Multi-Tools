@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Toolkit | All-in-One Content Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #5A52D5;
+            --secondary: #FF6584;
+            --accent: #36D1DC;
+            --success: #4CD964;
+            --warning: #FFCC00;
+            --danger: #FF3B30;
+            --light: #F8F9FA;
+            --dark: #1A1A2E;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --gradient: linear-gradient(135deg, #6C63FF 0%, #36D1DC 100%);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --border-radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #1A1A2E, #16213E, #0F3460, #533483);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 10px rgba(108, 99, 255, 0.5));
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease;
+            color: var(--dark);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .control-group select, .control-group input {
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .control-group select:focus, .control-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+            outline: none;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            resize: vertical;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.7s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.6);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: var(--dark);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 217, 100, 0.4);
+        }
+
+        .btn-success:hover {
+            background: #3fa037;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 217, 100, 0.6);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 5px 15px rgba(54, 209, 220, 0.4);
+        }
+
+        .btn-accent:hover {
+            background: #2bb7c5;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(54, 209, 220, 0.6);
+        }
+
+        .results-container {
+            margin-top: 25px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .keyword-list, .hashtag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .keyword-item, .hashtag-item {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .keyword-item:hover, .hashtag-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .keyword-item .count {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .keyword-item:hover .count {
+            background: white;
+            color: var(--primary);
+        }
+
+        .hashtag-item {
+            background: #e3f2fd;
+            color: #1565C0;
+        }
+
+        .hashtag-item:hover {
+            background: #1565C0;
+            color: white;
+        }
+
+        .density-chart {
+            margin-top: 20px;
+        }
+
+        .density-bar {
+            height: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .density-fill {
+            height: 100%;
+            background: var(--gradient);
+            border-radius: 15px;
+            transition: width 1s ease;
+        }
+
+        .density-label {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 600;
+            color: var(--dark);
+            z-index: 1;
+        }
+
+        .density-value {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 600;
+            color: var(--dark);
+            z-index: 1;
+        }
+
+        .social-platforms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .platform {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .platform:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .platform.active {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        .platform-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .platform-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            animation: fadeIn 1.5s ease;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--success);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(108, 99, 255, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 60px;
+            height: 60px;
+            animation-duration: 20s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 70%;
+            left: 80%;
+            width: 80px;
+            height: 80px;
+            animation-duration: 25s;
+        }
+
+        .floating-element:nth-child(3) {
+            top: 40%;
+            left: 85%;
+            width: 30px;
+            height: 30px;
+            animation-duration: 15s;
+        }
+
+        .floating-element:nth-child(4) {
+            top: 80%;
+            left: 15%;
+            width: 50px;
+            height: 50px;
+            animation-duration: 18s;
+        }
+
+        .floating-element:nth-child(5) {
+            top: 20%;
+            left: 70%;
+            width: 70px;
+            height: 70px;
+            animation-duration: 22s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(20px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(0, 100px) rotate(180deg);
+            }
+            75% {
+                transform: translate(-20px, 50px) rotate(270deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .copy-all {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .tool-info {
+            background: #e7f3ff;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .tool-info-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        .description-output {
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .description-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .description-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .description-platform {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .description-text {
+            line-height: 1.6;
+            color: var(--dark);
+        }
+
+        .tone-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tone-option {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            border: 2px solid transparent;
+        }
+
+        .tone-option:hover {
+            background: #e9ecef;
+        }
+
+        .tone-option.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary-dark);
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .char-count.warning {
+            color: var(--warning);
+        }
+
+        .char-count.danger {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-hashtag logo-icon"></i>
+                <h1>Social Media Toolkit</h1>
+            </div>
+            <p class="subtitle">Complete content assistant with Keyword Analysis, Hashtag Generation, and AI Description Creator</p>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <i class="fas fa-tools"></i> Content Tools
+                </h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="density">Keyword Density</div>
+                    <div class="tab" data-tab="keywords">Keyword Generator</div>
+                    <div class="tab" data-tab="hashtags">Hashtag Generator</div>
+                    <div class="tab" data-tab="description">Description Generator</div>
+                </div>
+                
+                <div class="tab-content active" id="density-tab">
+                    <div class="control-group">
+                        <label for="content-text">Paste your content here</label>
+                        <textarea id="content-text" placeholder="Paste your article, blog post, or any text content to analyze keyword density...">Social media marketing is essential for businesses today. With platforms like Instagram, Facebook, Twitter, and TikTok, you can reach a wide audience. Effective social media strategy involves creating engaging content, using relevant hashtags, and posting consistently. Social media management tools can help schedule posts and analyze performance. Remember that each social media platform has its own best practices and audience demographics.</textarea>
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="min-word-length">Minimum Word Length</label>
+                            <input type="number" id="min-word-length" min="2" max="10" value="3">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="max-results">Max Keywords to Show</label>
+                            <input type="number" id="max-results" min="5" max="50" value="15">
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" id="analyze-density">
+                            <i class="fas fa-chart-bar"></i> Analyze Keyword Density
+                        </button>
+                        <button class="btn-secondary" id="clear-content">
+                            <i class="fas fa-broom"></i> Clear Text
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="keywords-tab">
+                    <div class="control-group">
+                        <label for="keyword-seed">Seed Keyword/Topic</label>
+                        <input type="text" id="keyword-seed" value="social media marketing" placeholder="Enter your main topic or seed keyword">
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="keyword-count">Number of Keywords</label>
+                            <input type="number" id="keyword-count" min="5" max="50" value="15">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="keyword-difficulty">Keyword Difficulty</label>
+                            <select id="keyword-difficulty">
+                                <option value="all">All Difficulties</option>
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" id="generate-keywords">
+                            <i class="fas fa-key"></i> Generate Keywords
+                        </button>
+                        <button class="btn-secondary" id="more-keywords">
+                            <i class="fas fa-sync"></i> More Suggestions
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="hashtags-tab">
+                    <div class="control-group">
+                        <label for="hashtag-topic">Topic/Content Description</label>
+                        <input type="text" id="hashtag-topic" value="social media tips" placeholder="Describe your content or main topic">
+                    </div>
+                    
+                    <div class="social-platforms">
+                        <div class="platform active" data-platform="instagram">
+                            <div class="platform-icon" style="color: #E4405F;">
+                                <i class="fab fa-instagram"></i>
+                            </div>
+                            <div class="platform-name">Instagram</div>
+                        </div>
+                        <div class="platform" data-platform="twitter">
+                            <div class="platform-icon" style="color: #1DA1F2;">
+                                <i class="fab fa-twitter"></i>
+                            </div>
+                            <div class="platform-name">Twitter</div>
+                        </div>
+                        <div class="platform" data-platform="facebook">
+                            <div class="platform-icon" style="color: #1877F2;">
+                                <i class="fab fa-facebook"></i>
+                            </div>
+                            <div class="platform-name">Facebook</div>
+                        </div>
+                        <div class="platform" data-platform="tiktok">
+                            <div class="platform-icon" style="color: #000000;">
+                                <i class="fab fa-tiktok"></i>
+                            </div>
+                            <div class="platform-name">TikTok</div>
+                        </div>
+                        <div class="platform" data-platform="linkedin">
+                            <div class="platform-icon" style="color: #0A66C2;">
+                                <i class="fab fa-linkedin"></i>
+                            </div>
+                            <div class="platform-name">LinkedIn</div>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="hashtag-count">Number of Hashtags</label>
+                            <input type="number" id="hashtag-count" min="5" max="30" value="15">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="hashtag-type">Hashtag Type</label>
+                            <select id="hashtag-type">
+                                <option value="popular">Popular</option>
+                                <option value="niche">Niche</option>
+                                <option value="trending">Trending</option>
+                                <option value="branded">Branded</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" id="generate-hashtags">
+                            <i class="fas fa-hashtag"></i> Generate Hashtags
+                        </button>
+                        <button class="btn-success" id="copy-hashtags">
+                            <i class="fas fa-copy"></i> Copy All
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="description-tab">
+                    <div class="control-group">
+                        <label for="description-topic">Content Topic/Product</label>
+                        <input type="text" id="description-topic" value="social media marketing course" placeholder="Describe what you're promoting or sharing">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="description-keypoints">Key Points/Benefits</label>
+                        <textarea id="description-keypoints" placeholder="List the main benefits, features, or key points...">Learn effective social media strategies, grow your audience, increase engagement, create viral content, analyze performance metrics</textarea>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Content Tone</label>
+                        <div class="tone-options">
+                            <div class="tone-option active" data-tone="professional">Professional</div>
+                            <div class="tone-option" data-tone="casual">Casual</div>
+                            <div class="tone-option" data-tone="enthusiastic">Enthusiastic</div>
+                            <div class="tone-option" data-tone="humorous">Humorous</div>
+                            <div class="tone-option" data-tone="inspirational">Inspirational</div>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="description-count">Number of Descriptions</label>
+                            <input type="number" id="description-count" min="1" max="5" value="3">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="description-style">Description Style</label>
+                            <select id="description-style">
+                                <option value="benefits">Benefits-focused</option>
+                                <option value="problem-solution">Problem/Solution</option>
+                                <option value="storytelling">Storytelling</option>
+                                <option value="question">Question-based</option>
+                                <option value="cta">Call-to-Action</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-accent" id="generate-descriptions">
+                            <i class="fas fa-magic"></i> Generate Descriptions
+                        </button>
+                        <button class="btn-success" id="regenerate-descriptions">
+                            <i class="fas fa-sync"></i> Regenerate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <i class="fas fa-chart-pie"></i> Results & Analytics
+                </h2>
+                
+                <div class="tab-content active" id="density-results">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-words">0</div>
+                            <div class="stat-label">Total Words</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="unique-words">0</div>
+                            <div class="stat-label">Unique Words</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="keyword-density">0%</div>
+                            <div class="stat-label">Keyword Density</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="readability-score">0</div>
+                            <div class="stat-label">Readability Score</div>
+                        </div>
+                    </div>
+                    
+                    <div class="results-container">
+                        <h3 style="margin: 20px 0 15px; color: var(--dark);">Keyword Density Analysis</h3>
+                        
+                        <div class="density-chart" id="density-chart">
+                            <!-- Density bars will be generated here -->
+                        </div>
+                        
+                        <div class="tool-info">
+                            <div class="tool-info-title">Keyword Density Tips</div>
+                            <p>Optimal keyword density is typically between 1-2%. Higher densities may be seen as keyword stuffing, which can negatively impact SEO.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="keywords-results">
+                    <div class="results-container">
+                        <h3 style="margin: 0 0 15px; color: var(--dark);">Generated Keywords</h3>
+                        
+                        <div class="keyword-list" id="keyword-list">
+                            <!-- Keywords will be generated here -->
+                        </div>
+                        
+                        <div class="copy-all">
+                            <button class="btn-success" id="copy-keywords">
+                                <i class="fas fa-copy"></i> Copy All Keywords
+                            </button>
+                        </div>
+                        
+                        <div class="tool-info">
+                            <div class="tool-info-title">Keyword Research Tips</div>
+                            <p>Focus on long-tail keywords (3+ words) for better targeting. Consider search intent and competition when selecting keywords for your content.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="hashtags-results">
+                    <div class="results-container">
+                        <h3 style="margin: 0 0 15px; color: var(--dark);" id="hashtags-title">Instagram Hashtags</h3>
+                        
+                        <div class="hashtag-list" id="hashtag-list">
+                            <!-- Hashtags will be generated here -->
+                        </div>
+                        
+                        <div class="copy-all">
+                            <button class="btn-success" id="copy-all-hashtags">
+                                <i class="fas fa-copy"></i> Copy All Hashtags
+                            </button>
+                        </div>
+                        
+                        <div class="tool-info">
+                            <div class="tool-info-title">Hashtag Best Practices</div>
+                            <p>Use a mix of popular, niche, and branded hashtags. Instagram allows up to 30 hashtags, but 5-15 well-chosen ones often perform better.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="description-results">
+                    <div class="results-container">
+                        <h3 style="margin: 0 0 15px; color: var(--dark);">Generated Descriptions</h3>
+                        
+                        <div class="description-output" id="description-output">
+                            <!-- Descriptions will be generated here -->
+                        </div>
+                        
+                        <div class="copy-all">
+                            <button class="btn-success" id="copy-descriptions">
+                                <i class="fas fa-copy"></i> Copy All Descriptions
+                            </button>
+                        </div>
+                        
+                        <div class="tool-info">
+                            <div class="tool-info-title">Description Writing Tips</div>
+                            <p>Effective descriptions should be concise, engaging, and include a clear call-to-action. Tailor your tone and length to each social platform.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Social Media Toolkit helps content creators, marketers, and businesses optimize their social media presence with data-driven keyword strategies, hashtag recommendations, and AI-powered descriptions.</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Content copied to clipboard!</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const contentText = document.getElementById('content-text');
+            const minWordLength = document.getElementById('min-word-length');
+            const maxResults = document.getElementById('max-results');
+            const analyzeDensityBtn = document.getElementById('analyze-density');
+            const clearContentBtn = document.getElementById('clear-content');
+            const keywordSeed = document.getElementById('keyword-seed');
+            const keywordCount = document.getElementById('keyword-count');
+            const keywordDifficulty = document.getElementById('keyword-difficulty');
+            const generateKeywordsBtn = document.getElementById('generate-keywords');
+            const moreKeywordsBtn = document.getElementById('more-keywords');
+            const copyKeywordsBtn = document.getElementById('copy-keywords');
+            const hashtagTopic = document.getElementById('hashtag-topic');
+            const platforms = document.querySelectorAll('.platform');
+            const hashtagCount = document.getElementById('hashtag-count');
+            const hashtagType = document.getElementById('hashtag-type');
+            const generateHashtagsBtn = document.getElementById('generate-hashtags');
+            const copyHashtagsBtn = document.getElementById('copy-hashtags');
+            const copyAllHashtagsBtn = document.getElementById('copy-all-hashtags');
+            const descriptionTopic = document.getElementById('description-topic');
+            const descriptionKeypoints = document.getElementById('description-keypoints');
+            const toneOptions = document.querySelectorAll('.tone-option');
+            const descriptionCount = document.getElementById('description-count');
+            const descriptionStyle = document.getElementById('description-style');
+            const generateDescriptionsBtn = document.getElementById('generate-descriptions');
+            const regenerateDescriptionsBtn = document.getElementById('regenerate-descriptions');
+            const copyDescriptionsBtn = document.getElementById('copy-descriptions');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            // Stats elements
+            const totalWords = document.getElementById('total-words');
+            const uniqueWords = document.getElementById('unique-words');
+            const keywordDensity = document.getElementById('keyword-density');
+            const readabilityScore = document.getElementById('readability-score');
+            const densityChart = document.getElementById('density-chart');
+            const keywordList = document.getElementById('keyword-list');
+            const hashtagList = document.getElementById('hashtag-list');
+            const hashtagsTitle = document.getElementById('hashtags-title');
+            const descriptionOutput = document.getElementById('description-output');
+            
+            // Current state
+            let currentPlatform = 'instagram';
+            let currentKeywords = [];
+            let currentHashtags = [];
+            let currentTone = 'professional';
+            let currentDescriptions = [];
+            
+            // Initialize
+            setupEventListeners();
+            analyzeKeywordDensity();
+            generateKeywordSuggestions();
+            generateHashtagSuggestions();
+            generateDescriptionSuggestions();
+            
+            // Functions
+            function setupEventListeners() {
+                // Tab functionality
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabId = this.getAttribute('data-tab');
+                        
+                        // Remove active class from all tabs and contents
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        // Add active class to current tab and content
+                        this.classList.add('active');
+                        document.getElementById(`${tabId}-tab`).classList.add('active');
+                        document.getElementById(`${tabId}-results`).classList.add('active');
+                        
+                        // Update results based on active tab
+                        if (tabId === 'density') {
+                            analyzeKeywordDensity();
+                        } else if (tabId === 'keywords') {
+                            generateKeywordSuggestions();
+                        } else if (tabId === 'hashtags') {
+                            generateHashtagSuggestions();
+                        } else if (tabId === 'description') {
+                            generateDescriptionSuggestions();
+                        }
+                    });
+                });
+                
+                // Platform selection
+                platforms.forEach(platform => {
+                    platform.addEventListener('click', function() {
+                        const platformName = this.getAttribute('data-platform');
+                        
+                        // Update active platform
+                        platforms.forEach(p => p.classList.remove('active'));
+                        this.classList.add('active');
+                        currentPlatform = platformName;
+                        
+                        // Update hashtags title
+                        hashtagsTitle.textContent = `${capitalizeFirstLetter(platformName)} Hashtags`;
+                        
+                        // Regenerate hashtags
+                        generateHashtagSuggestions();
+                    });
+                });
+                
+                // Tone selection
+                toneOptions.forEach(tone => {
+                    tone.addEventListener('click', function() {
+                        const toneName = this.getAttribute('data-tone');
+                        
+                        // Update active tone
+                        toneOptions.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        currentTone = toneName;
+                    });
+                });
+                
+                // Analyze density button
+                analyzeDensityBtn.addEventListener('click', analyzeKeywordDensity);
+                
+                // Clear content button
+                clearContentBtn.addEventListener('click', function() {
+                    contentText.value = '';
+                    analyzeKeywordDensity();
+                });
+                
+                // Generate keywords button
+                generateKeywordsBtn.addEventListener('click', generateKeywordSuggestions);
+                
+                // More keywords button
+                moreKeywordsBtn.addEventListener('click', generateMoreKeywords);
+                
+                // Copy keywords button
+                copyKeywordsBtn.addEventListener('click', function() {
+                    copyToClipboard(currentKeywords.join(', '));
+                    showNotification('Keywords copied to clipboard!');
+                });
+                
+                // Generate hashtags button
+                generateHashtagsBtn.addEventListener('click', generateHashtagSuggestions);
+                
+                // Copy hashtags button
+                copyHashtagsBtn.addEventListener('click', function() {
+                    copyToClipboard(currentHashtags.join(' '));
+                    showNotification('Hashtags copied to clipboard!');
+                });
+                
+                // Copy all hashtags button
+                copyAllHashtagsBtn.addEventListener('click', function() {
+                    copyToClipboard(currentHashtags.join(' '));
+                    showNotification('Hashtags copied to clipboard!');
+                });
+                
+                // Generate descriptions button
+                generateDescriptionsBtn.addEventListener('click', generateDescriptionSuggestions);
+                
+                // Regenerate descriptions button
+                regenerateDescriptionsBtn.addEventListener('click', generateDescriptionSuggestions);
+                
+                // Copy descriptions button
+                copyDescriptionsBtn.addEventListener('click', function() {
+                    const allDescriptions = currentDescriptions.map(desc => desc.text).join('\n\n');
+                    copyToClipboard(allDescriptions);
+                    showNotification('All descriptions copied to clipboard!');
+                });
+            }
+            
+            function analyzeKeywordDensity() {
+                const text = contentText.value;
+                if (!text.trim()) {
+                    resetStats();
+                    return;
+                }
+                
+                // Calculate basic stats
+                const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+                const total = words.length;
+                const unique = new Set(words).size;
+                
+                // Calculate keyword density
+                const wordFreq = {};
+                words.forEach(word => {
+                    if (word.length >= parseInt(minWordLength.value)) {
+                        wordFreq[word] = (wordFreq[word] || 0) + 1;
+                    }
+                });
+                
+                // Sort by frequency
+                const sortedWords = Object.entries(wordFreq)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, parseInt(maxResults.value));
+                
+                // Update stats
+                totalWords.textContent = total.toLocaleString();
+                uniqueWords.textContent = unique.toLocaleString();
+                
+                // Calculate keyword density percentage
+                const topWordCount = sortedWords.reduce((sum, word) => sum + word[1], 0);
+                const density = ((topWordCount / total) * 100).toFixed(1);
+                keywordDensity.textContent = `${density}%`;
+                
+                // Calculate readability score (simplified)
+                const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+                const avgWordsPerSentence = total / sentences.length;
+                const readability = Math.max(1, Math.min(100, 100 - (avgWordsPerSentence * 1.5)));
+                readabilityScore.textContent = Math.round(readability);
+                
+                // Update density chart
+                updateDensityChart(sortedWords, total);
+            }
+            
+            function updateDensityChart(words, total) {
+                densityChart.innerHTML = '';
+                
+                words.forEach(([word, count]) => {
+                    const percentage = ((count / total) * 100).toFixed(1);
+                    
+                    const bar = document.createElement('div');
+                    bar.className = 'density-bar';
+                    
+                    const fill = document.createElement('div');
+                    fill.className = 'density-fill';
+                    fill.style.width = `0%`;
+                    
+                    // Animate the width
+                    setTimeout(() => {
+                        fill.style.width = `${percentage}%`;
+                    }, 100);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'density-label';
+                    label.textContent = word;
+                    
+                    const value = document.createElement('div');
+                    value.className = 'density-value';
+                    value.textContent = `${percentage}%`;
+                    
+                    bar.appendChild(fill);
+                    bar.appendChild(label);
+                    bar.appendChild(value);
+                    
+                    densityChart.appendChild(bar);
+                });
+            }
+            
+            function resetStats() {
+                totalWords.textContent = '0';
+                uniqueWords.textContent = '0';
+                keywordDensity.textContent = '0%';
+                readabilityScore.textContent = '0';
+                densityChart.innerHTML = '<p style="text-align: center; color: #6c757d;">No content to analyze</p>';
+            }
+            
+            function generateKeywordSuggestions() {
+                const seed = keywordSeed.value.trim() || 'social media';
+                const count = parseInt(keywordCount.value);
+                const difficulty = keywordDifficulty.value;
+                
+                // Generate keyword suggestions based on seed
+                currentKeywords = generateKeywords(seed, count, difficulty);
+                
+                // Update keyword list
+                updateKeywordList();
+            }
+            
+            function generateMoreKeywords() {
+                const seed = keywordSeed.value.trim() || 'social media';
+                const count = parseInt(keywordCount.value);
+                const difficulty = keywordDifficulty.value;
+                
+                // Generate additional keyword suggestions
+                const moreKeywords = generateKeywords(seed, count, difficulty);
+                currentKeywords = [...new Set([...currentKeywords, ...moreKeywords])].slice(0, 30);
+                
+                // Update keyword list
+                updateKeywordList();
+                
+                // Show notification
+                showNotification('More keyword suggestions generated!');
+            }
+            
+            function generateKeywords(seed, count, difficulty) {
+                // Base keyword templates
+                const templates = [
+                    `${seed} tips`,
+                    `best ${seed}`,
+                    `${seed} strategies`,
+                    `how to ${seed}`,
+                    `${seed} for beginners`,
+                    `advanced ${seed}`,
+                    `${seed} tools`,
+                    `${seed} examples`,
+                    `${seed} ideas`,
+                    `${seed} techniques`,
+                    `free ${seed}`,
+                    `${seed} course`,
+                    `${seed} tutorial`,
+                    `${seed} guide`,
+                    `${seed} benefits`,
+                    `${seed} trends`,
+                    `${seed} statistics`,
+                    `${seed} software`,
+                    `${seed} platform`,
+                    `${seed} agency`
+                ];
+                
+                // Modifiers based on difficulty
+                const modifiers = {
+                    easy: ['easy', 'simple', 'quick', 'basic', 'essential'],
+                    medium: ['effective', 'powerful', 'professional', 'comprehensive', 'advanced'],
+                    hard: ['expert', 'ultimate', 'complete', 'master', 'comprehensive']
+                };
+                
+                let keywords = [];
+                
+                // Generate keywords based on templates
+                templates.forEach(template => {
+                    if (keywords.length < count) {
+                        keywords.push(template);
+                    }
+                    
+                    // Add difficulty-based variations
+                    if (difficulty !== 'all') {
+                        modifiers[difficulty].forEach(modifier => {
+                            if (keywords.length < count) {
+                                keywords.push(`${modifier} ${template}`);
+                            }
+                        });
+                    }
+                });
+                
+                // Add some random variations
+                const variations = ['2023', '2024', 'guide', 'checklist', 'template', 'resource', 'plan'];
+                variations.forEach(variation => {
+                    if (keywords.length < count) {
+                        keywords.push(`${seed} ${variation}`);
+                    }
+                });
+                
+                // Ensure we have the requested number of keywords
+                while (keywords.length < count) {
+                    keywords.push(`${seed} tip ${keywords.length + 1}`);
+                }
+                
+                // Shuffle and return
+                return shuffleArray(keywords).slice(0, count);
+            }
+            
+            function updateKeywordList() {
+                keywordList.innerHTML = '';
+                
+                currentKeywords.forEach(keyword => {
+                    const keywordItem = document.createElement('div');
+                    keywordItem.className = 'keyword-item';
+                    
+                    // Simulate search volume with random number
+                    const volume = Math.floor(Math.random() * 10000) + 100;
+                    
+                    keywordItem.innerHTML = `
+                        <span>${keyword}</span>
+                        <div class="count">${(volume / 1000).toFixed(1)}k</div>
+                    `;
+                    
+                    keywordItem.addEventListener('click', function() {
+                        copyToClipboard(keyword);
+                        showNotification(`"${keyword}" copied to clipboard!`);
+                    });
+                    
+                    keywordList.appendChild(keywordItem);
+                });
+            }
+            
+            function generateHashtagSuggestions() {
+                const topic = hashtagTopic.value.trim() || 'social media';
+                const count = parseInt(hashtagCount.value);
+                const type = hashtagType.value;
+                
+                // Generate hashtag suggestions based on topic and platform
+                currentHashtags = generateHashtags(topic, count, type, currentPlatform);
+                
+                // Update hashtag list
+                updateHashtagList();
+            }
+            
+            function generateHashtags(topic, count, type, platform) {
+                // Base hashtags based on topic
+                const baseHashtags = [
+                    `#${topic.replace(/\s+/g, '')}`,
+                    `#${topic.replace(/\s+/g, '')}tips`,
+                    `#${topic.replace(/\s+/g, '')}ideas`,
+                    `#${topic.replace(/\s+/g, '')}strategy`,
+                    `#${topic.replace(/\s+/g, '')}marketing`
+                ];
+                
+                // Platform-specific hashtags
+                const platformHashtags = {
+                    instagram: ['#instagood', '#instagram', '#photooftheday', '#picoftheday', '#igdaily'],
+                    twitter: ['#twitter', '#tweet', '#thread', '#twitterchat', '#follow'],
+                    facebook: ['#facebook', '#fb', '#socialmedia', '#community', '#engagement'],
+                    tiktok: ['#tiktok', '#fyp', '#foryou', '#viral', '#trending'],
+                    linkedin: ['#linkedin', '#professional', '#career', '#business', '#networking']
+                };
+                
+                // Type-specific hashtags
+                const typeHashtags = {
+                    popular: ['#love', '#like', '#follow', '#share', '#comment'],
+                    niche: ['#digitalmarketing', '#contentcreation', '#socialmediamanager', '#marketingtips', '#growthhacking'],
+                    trending: ['#trending', '#viral', '#hot', '#now', '#latest'],
+                    branded: ['#brand', '#business', '#company', '#entrepreneur', '#startup']
+                };
+                
+                let hashtags = [...baseHashtags];
+                
+                // Add platform-specific hashtags
+                if (platformHashtags[platform]) {
+                    hashtags = [...hashtags, ...platformHashtags[platform]];
+                }
+                
+                // Add type-specific hashtags
+                if (typeHashtags[type]) {
+                    hashtags = [...hashtags, ...typeHashtags[type]];
+                }
+                
+                // Add some general social media hashtags
+                const generalHashtags = [
+                    '#socialmedia', '#marketing', '#digital', '#content', '#online',
+                    '#media', '#influencer', '#engagement', '#audience', '#growth'
+                ];
+                
+                hashtags = [...hashtags, ...generalHashtags];
+                
+                // Ensure we have the requested number of hashtags
+                while (hashtags.length < count) {
+                    hashtags.push(`#${topic}${hashtags.length + 1}`);
+                }
+                
+                // Shuffle and return
+                return shuffleArray(hashtags).slice(0, count);
+            }
+            
+            function updateHashtagList() {
+                hashtagList.innerHTML = '';
+                
+                currentHashtags.forEach(hashtag => {
+                    const hashtagItem = document.createElement('div');
+                    hashtagItem.className = 'hashtag-item';
+                    hashtagItem.textContent = hashtag;
+                    
+                    hashtagItem.addEventListener('click', function() {
+                        copyToClipboard(hashtag);
+                        showNotification(`"${hashtag}" copied to clipboard!`);
+                    });
+                    
+                    hashtagList.appendChild(hashtagItem);
+                });
+            }
+            
+            function generateDescriptionSuggestions() {
+                const topic = descriptionTopic.value.trim() || 'social media marketing';
+                const keypoints = descriptionKeypoints.value;
+                const count = parseInt(descriptionCount.value);
+                const style = descriptionStyle.value;
+                
+                // Generate description suggestions
+                currentDescriptions = generateDescriptions(topic, keypoints, count, style, currentTone);
+                
+                // Update description output
+                updateDescriptionOutput();
+            }
+            
+            function generateDescriptions(topic, keypoints, count, style, tone) {
+                const descriptions = [];
+                const keypointsArray = keypoints.split(',').map(k => k.trim()).filter(k => k);
+                
+                // Platform character limits
+                const platformLimits = {
+                    instagram: 2200,
+                    twitter: 280,
+                    facebook: 5000,
+                    linkedin: 3000,
+                    tiktok: 150
+                };
+                
+                // Tone modifiers
+                const toneModifiers = {
+                    professional: ['Discover', 'Learn', 'Enhance', 'Optimize', 'Maximize'],
+                    casual: ['Check out', 'Hey there!', 'You gotta see', 'So excited about', 'Loving this'],
+                    enthusiastic: ['AMAZING!', 'WOW!', 'Incredible!', 'Game-changing!', 'Mind-blowing!'],
+                    humorous: ['Get ready to', 'Warning: This might', 'You won\'t believe', 'Prepare to be', 'This is the'],
+                    inspirational: ['Unlock your', 'Transform your', 'Elevate your', 'Achieve your', 'Master the art of']
+                };
+                
+                // Style templates
+                const styleTemplates = {
+                    'benefits': [
+                        `${toneModifiers[tone][0]} how ${topic} can ${keypointsArray[0] || 'transform your approach'}. ${keypointsArray.slice(1, 3).join('. ')}.`,
+                        `Ready to ${keypointsArray[0] || 'improve your results'}? ${topic} delivers ${keypointsArray.slice(1, 3).join(', ')} and more!`,
+                        `Experience the benefits of ${topic}: ${keypointsArray.slice(0, 3).join(', ')}. Transform your strategy today!`
+                    ],
+                    'problem-solution': [
+                        `Struggling with ${topic.split(' ')[0]}? Discover how ${topic} solves ${keypointsArray[0] || 'common challenges'} and delivers ${keypointsArray[1] || 'real results'}.`,
+                        `Tired of ${topic.split(' ')[0]} not working? ${topic} provides the solution with ${keypointsArray.slice(0, 2).join(' and ')}.`,
+                        `The ultimate solution for ${topic} challenges. Get ${keypointsArray.slice(0, 3).join(', ')} and achieve your goals faster.`
+                    ],
+                    'storytelling': [
+                        `When I first started with ${topic}, I struggled. Then I discovered the power of ${keypointsArray[0] || 'these techniques'}. Now I'm achieving ${keypointsArray[1] || 'amazing results'}!`,
+                        `My journey with ${topic} began with frustration. But everything changed when I focused on ${keypointsArray.slice(0, 2).join(' and ')}. Here's what happened...`,
+                        `From beginner to expert in ${topic}. The secret? Mastering ${keypointsArray.slice(0, 2).join(' and ')}. Ready to start your own success story?`
+                    ],
+                    'question': [
+                        `Want to ${keypointsArray[0] || 'improve your results'} with ${topic}? Discover how ${keypointsArray.slice(1, 3).join(' and ')} can help you achieve your goals.`,
+                        `Are you making these ${topic} mistakes? Learn how to ${keypointsArray[0] || 'avoid common pitfalls'} and ${keypointsArray[1] || 'succeed faster'}.`,
+                        `Ready to take your ${topic} to the next level? Get ${keypointsArray.slice(0, 3).join(', ')} and transform your approach today!`
+                    ],
+                    'cta': [
+                        `Don't miss this opportunity to ${keypointsArray[0] || 'transform your approach'} with ${topic}. Get ${keypointsArray.slice(1, 3).join(' and ')} now!`,
+                        `Take action today! ${topic} delivers ${keypointsArray.slice(0, 3).join(', ')}. Start seeing results immediately.`,
+                        `Ready for change? ${topic} provides ${keypointsArray.slice(0, 3).join(', ')}. Click to begin your transformation!`
+                    ]
+                };
+                
+                // Generate descriptions
+                for (let i = 0; i < count; i++) {
+                    const template = styleTemplates[style][i % styleTemplates[style].length];
+                    const platform = ['instagram', 'twitter', 'facebook'][i % 3];
+                    const charLimit = platformLimits[platform];
+                    
+                    // Ensure description fits platform limits
+                    let description = template;
+                    if (description.length > charLimit) {
+                        description = description.substring(0, charLimit - 3) + '...';
+                    }
+                    
+                    descriptions.push({
+                        text: description,
+                        platform: platform,
+                        charCount: description.length,
+                        charLimit: charLimit
+                    });
+                }
+                
+                return descriptions;
+            }
+            
+            function updateDescriptionOutput() {
+                descriptionOutput.innerHTML = '';
+                
+                currentDescriptions.forEach((desc, index) => {
+                    const descriptionItem = document.createElement('div');
+                    descriptionItem.className = 'description-item';
+                    
+                    const charCountClass = desc.charCount > desc.charLimit * 0.9 ? 'danger' : 
+                                          desc.charCount > desc.charLimit * 0.8 ? 'warning' : '';
+                    
+                    descriptionItem.innerHTML = `
+                        <div class="description-platform">
+                            <i class="fab fa-${desc.platform}"></i>
+                            ${capitalizeFirstLetter(desc.platform)} Description
+                        </div>
+                        <div class="description-text">${desc.text}</div>
+                        <div class="char-count ${charCountClass}">
+                            ${desc.charCount}/${desc.charLimit} characters
+                        </div>
+                    `;
+                    
+                    descriptionItem.addEventListener('click', function() {
+                        copyToClipboard(desc.text);
+                        showNotification(`${capitalizeFirstLetter(desc.platform)} description copied to clipboard!`);
+                    });
+                    
+                    descriptionOutput.appendChild(descriptionItem);
+                });
+            }
+            
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            
+            function copyToClipboard(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            
+            function showNotification(message) {
+                notificationText.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
