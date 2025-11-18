@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChromaCraft | Advanced Color Palette Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #5A52D5;
+            --secondary: #FF6584;
+            --accent: #36D1DC;
+            --success: #4CD964;
+            --warning: #FFCC00;
+            --danger: #FF3B30;
+            --light: #F8F9FA;
+            --dark: #1A1A2E;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --gradient: linear-gradient(135deg, #6C63FF 0%, #36D1DC 100%);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --border-radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #1A1A2E, #16213E, #0F3460, #533483);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 10px rgba(108, 99, 255, 0.5));
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease;
+            color: var(--dark);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .control-group select, .control-group input {
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .control-group select:focus, .control-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+            outline: none;
+        }
+
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .color-input input[type="color"] {
+            width: 70px;
+            height: 50px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-input input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+
+        .color-input input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .color-input input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.7s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.6);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: var(--dark);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 217, 100, 0.4);
+        }
+
+        .btn-success:hover {
+            background: #3fa037;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 217, 100, 0.6);
+        }
+
+        .palette-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .color-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            cursor: pointer;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .color-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-swatch {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.05);
+        }
+
+        .color-info {
+            padding: 15px;
+            background: white;
+            text-align: center;
+        }
+
+        .color-hex {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .color-rgb {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .palette-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            color: var(--dark);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .saved-palettes {
+            margin-top: 30px;
+        }
+
+        .saved-palettes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .saved-palette {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .saved-palette:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .saved-palette-colors {
+            display: flex;
+            height: 80px;
+        }
+
+        .saved-palette-color {
+            flex: 1;
+            transition: var(--transition);
+        }
+
+        .saved-palette-color:hover {
+            flex: 1.5;
+        }
+
+        .saved-palette-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .saved-palette-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .saved-palette-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            animation: fadeIn 1.5s ease;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--success);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(108, 99, 255, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 60px;
+            height: 60px;
+            animation-duration: 20s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 70%;
+            left: 80%;
+            width: 80px;
+            height: 80px;
+            animation-duration: 25s;
+        }
+
+        .floating-element:nth-child(3) {
+            top: 40%;
+            left: 85%;
+            width: 30px;
+            height: 30px;
+            animation-duration: 15s;
+        }
+
+        .floating-element:nth-child(4) {
+            top: 80%;
+            left: 15%;
+            width: 50px;
+            height: 50px;
+            animation-duration: 18s;
+        }
+
+        .floating-element:nth-child(5) {
+            top: 20%;
+            left: 70%;
+            width: 70px;
+            height: 70px;
+            animation-duration: 22s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(20px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(0, 100px) rotate(180deg);
+            }
+            75% {
+                transform: translate(-20px, 50px) rotate(270deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .harmony-preview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .harmony-color {
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .harmony-color:hover {
+            flex: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-palette logo-icon"></i>
+                <h1>ChromaCraft</h1>
+            </div>
+            <p class="subtitle">Create beautiful color palettes with advanced generation tools and harmony rules</p>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <i class="fas fa-sliders-h"></i> Palette Controls
+                </h2>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="palette-type">Palette Type</label>
+                        <select id="palette-type">
+                            <option value="analogous">Analogous</option>
+                            <option value="monochromatic">Monochromatic</option>
+                            <option value="complementary">Complementary</option>
+                            <option value="split-complementary">Split-Complementary</option>
+                            <option value="triadic">Triadic</option>
+                            <option value="tetradic">Tetradic</option>
+                            <option value="square">Square</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="color-count">Color Count</label>
+                        <input type="range" id="color-count" min="3" max="8" value="5">
+                        <span id="color-count-value">5 colors</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="base-color">Base Color</label>
+                    <div class="color-input">
+                        <input type="color" id="base-color" value="#6C63FF">
+                        <input type="text" id="base-color-hex" value="#6C63FF">
+                    </div>
+                </div>
+                
+                <div class="harmony-preview" id="harmony-preview">
+                    <div class="harmony-color" style="background-color: #6C63FF;">#6C63FF</div>
+                    <div class="harmony-color" style="background-color: #63FFD0;">#63FFD0</div>
+                    <div class="harmony-color" style="background-color: #FF63A6;">#FF63A6</div>
+                    <div class="harmony-color" style="background-color: #FFB963;">#FFB963</div>
+                    <div class="harmony-color" style="background-color: #8C63FF;">#8C63FF</div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" id="generate-palette">
+                        <i class="fas fa-magic"></i> Generate Palette
+                    </button>
+                    <button class="btn-secondary" id="random-palette">
+                        <i class="fas fa-random"></i> Random Palette
+                    </button>
+                    <button class="btn-success" id="save-palette">
+                        <i class="fas fa-save"></i> Save Palette
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <i class="fas fa-swatchbook"></i> Generated Palette
+                </h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="current">Current Palette</div>
+                    <div class="tab" data-tab="saved">Saved Palettes</div>
+                </div>
+                
+                <div class="tab-content active" id="current-tab">
+                    <div class="palette-container" id="palette-container">
+                        <!-- Palette will be generated here -->
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="saved-tab">
+                    <div class="saved-palettes" id="saved-palettes">
+                        <!-- Saved palettes will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>ChromaCraft helps designers create beautiful, harmonious color palettes for any project. Use the harmony rules to generate professional color schemes.</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Palette saved successfully!</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const paletteType = document.getElementById('palette-type');
+            const colorCount = document.getElementById('color-count');
+            const colorCountValue = document.getElementById('color-count-value');
+            const baseColor = document.getElementById('base-color');
+            const baseColorHex = document.getElementById('base-color-hex');
+            const generateBtn = document.getElementById('generate-palette');
+            const randomBtn = document.getElementById('random-palette');
+            const saveBtn = document.getElementById('save-palette');
+            const paletteContainer = document.getElementById('palette-container');
+            const savedPalettes = document.getElementById('saved-palettes');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const harmonyPreview = document.getElementById('harmony-preview');
+            
+            // Current palette
+            let currentPalette = [];
+            
+            // Initialize
+            updateColorCountValue();
+            generatePalette();
+            loadSavedPalettes();
+            
+            // Event Listeners
+            paletteType.addEventListener('change', generatePalette);
+            colorCount.addEventListener('input', updateColorCountValue);
+            colorCount.addEventListener('change', generatePalette);
+            baseColor.addEventListener('input', function() {
+                baseColorHex.value = this.value;
+                generatePalette();
+            });
+            baseColorHex.addEventListener('input', function() {
+                if (this.value.match(/^#[0-9A-F]{6}$/i)) {
+                    baseColor.value = this.value;
+                    generatePalette();
+                }
+            });
+            generateBtn.addEventListener('click', generatePalette);
+            randomBtn.addEventListener('click', generateRandomPalette);
+            saveBtn.addEventListener('click', saveCurrentPalette);
+            
+            // Tab functionality
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to current tab and content
+                    this.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    
+                    // If switching to saved tab, refresh the list
+                    if (tabId === 'saved') {
+                        loadSavedPalettes();
+                    }
+                });
+            });
+            
+            // Functions
+            function updateColorCountValue() {
+                colorCountValue.textContent = `${colorCount.value} colors`;
+            }
+            
+            function generatePalette() {
+                const type = paletteType.value;
+                const count = parseInt(colorCount.value);
+                const base = baseColor.value;
+                
+                currentPalette = generateHarmonyPalette(type, base, count);
+                renderPalette(currentPalette);
+                updateHarmonyPreview(currentPalette);
+            }
+            
+            function generateRandomPalette() {
+                // Generate a random hex color
+                const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+                
+                // Set the base color to the random color
+                baseColor.value = randomColor;
+                baseColorHex.value = randomColor;
+                
+                // Generate a random palette type
+                const types = ['analogous', 'monochromatic', 'complementary', 'split-complementary', 'triadic', 'tetradic', 'square'];
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                paletteType.value = randomType;
+                
+                // Generate the palette
+                generatePalette();
+                
+                // Add animation effect
+                randomBtn.style.transform = 'rotate(360deg)';
+                setTimeout(() => {
+                    randomBtn.style.transform = 'rotate(0)';
+                }, 500);
+            }
+            
+            function generateHarmonyPalette(type, baseColor, count) {
+                const base = hexToHsl(baseColor);
+                const palette = [hslToHex(base.h, base.s, base.l)];
+                
+                switch(type) {
+                    case 'analogous':
+                        for (let i = 1; i < count; i++) {
+                            const hue = (base.h + (i * 30)) % 360;
+                            palette.push(hslToHex(hue, base.s, base.l));
+                        }
+                        break;
+                    case 'monochromatic':
+                        for (let i = 1; i < count; i++) {
+                            const lightness = Math.max(10, Math.min(90, base.l + (i * (70 / count)) - 35));
+                            palette.push(hslToHex(base.h, base.s, lightness));
+                        }
+                        break;
+                    case 'complementary':
+                        palette.push(hslToHex((base.h + 180) % 360, base.s, base.l));
+                        for (let i = 2; i < count; i++) {
+                            const hue = (base.h + (i * (180 / count))) % 360;
+                            palette.push(hslToHex(hue, base.s, base.l));
+                        }
+                        break;
+                    case 'split-complementary':
+                        palette.push(hslToHex((base.h + 150) % 360, base.s, base.l));
+                        palette.push(hslToHex((base.h + 210) % 360, base.s, base.l));
+                        for (let i = 3; i < count; i++) {
+                            const hue = (base.h + (i * (60 / count))) % 360;
+                            palette.push(hslToHex(hue, base.s, base.l));
+                        }
+                        break;
+                    case 'triadic':
+                        palette.push(hslToHex((base.h + 120) % 360, base.s, base.l));
+                        palette.push(hslToHex((base.h + 240) % 360, base.s, base.l));
+                        for (let i = 3; i < count; i++) {
+                            const hue = (base.h + (i * (120 / count))) % 360;
+                            palette.push(hslToHex(hue, base.s, base.l));
+                        }
+                        break;
+                    case 'tetradic':
+                        palette.push(hslToHex((base.h + 90) % 360, base.s, base.l));
+                        palette.push(hslToHex((base.h + 180) % 360, base.s, base.l));
+                        palette.push(hslToHex((base.h + 270) % 360, base.s, base.l));
+                        for (let i = 4; i < count; i++) {
+                            const hue = (base.h + (i * (90 / count))) % 360;
+                            palette.push(hslToHex(hue, base.s, base.l));
+                        }
+                        break;
+                    case 'square':
+                        for (let i = 1; i < count; i++) {
+                            const hue = (base.h + (i * 90)) % 360;
+                            palette.push(hslToHex(hue, base.s, base.l));
+                        }
+                        break;
+                }
+                
+                return palette;
+            }
+            
+            function hexToHsl(hex) {
+                // Convert hex to RGB first
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = parseInt(hex[1] + hex[1], 16);
+                    g = parseInt(hex[2] + hex[2], 16);
+                    b = parseInt(hex[3] + hex[3], 16);
+                } else if (hex.length == 7) {
+                    r = parseInt(hex[1] + hex[2], 16);
+                    g = parseInt(hex[3] + hex[4], 16);
+                    b = parseInt(hex[5] + hex[6], 16);
+                }
+                
+                // Then to HSL
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+
+                if (max == min) {
+                    h = s = 0; // achromatic
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            }
+            
+            function hslToHex(h, s, l) {
+                h /= 360;
+                s /= 100;
+                l /= 100;
+                let r, g, b;
+                
+                if (s === 0) {
+                    r = g = b = l; // achromatic
+                } else {
+                    const hue2rgb = (p, q, t) => {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1/6) return p + (q - p) * 6 * t;
+                        if (t < 1/2) return q;
+                        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                        return p;
+                    };
+                    
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+                
+                const toHex = x => {
+                    const hex = Math.round(x * 255).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                };
+                
+                return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+            }
+            
+            function renderPalette(palette) {
+                paletteContainer.innerHTML = '';
+                
+                palette.forEach((color, index) => {
+                    const rgb = hexToRgb(color);
+                    const colorCard = document.createElement('div');
+                    colorCard.className = 'color-card';
+                    colorCard.style.animationDelay = `${index * 0.1}s`;
+                    
+                    colorCard.innerHTML = `
+                        <div class="color-swatch" style="background-color: ${color};">
+                            <i class="fas fa-eye" style="color: ${getContrastColor(color)}; opacity: 0.8;"></i>
+                        </div>
+                        <div class="color-info">
+                            <div class="color-hex">${color}</div>
+                            <div class="color-rgb">rgb(${rgb.r}, ${rgb.g}, ${rgb.b})</div>
+                            <div class="palette-actions">
+                                <button class="action-btn copy-btn" data-color="${color}" title="Copy color">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="action-btn lock-btn" title="Lock color">
+                                    <i class="fas fa-lock-open"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    paletteContainer.appendChild(colorCard);
+                });
+                
+                // Add event listeners to copy buttons
+                document.querySelectorAll('.copy-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const color = this.getAttribute('data-color');
+                        copyToClipboard(color);
+                        showNotification(`Copied ${color} to clipboard`);
+                    });
+                });
+            }
+            
+            function hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : {r: 0, g: 0, b: 0};
+            }
+            
+            function getContrastColor(hexcolor) {
+                const r = parseInt(hexcolor.substr(1, 2), 16);
+                const g = parseInt(hexcolor.substr(3, 2), 16);
+                const b = parseInt(hexcolor.substr(5, 2), 16);
+                const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                return (yiq >= 128) ? '#000000' : '#FFFFFF';
+            }
+            
+            function updateHarmonyPreview(palette) {
+                harmonyPreview.innerHTML = '';
+                
+                palette.forEach(color => {
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'harmony-color';
+                    colorDiv.style.backgroundColor = color;
+                    colorDiv.textContent = color;
+                    harmonyPreview.appendChild(colorDiv);
+                });
+            }
+            
+            function saveCurrentPalette() {
+                if (currentPalette.length === 0) return;
+                
+                const paletteName = `Palette ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+                const paletteData = {
+                    name: paletteName,
+                    colors: currentPalette,
+                    type: paletteType.value,
+                    date: new Date().toISOString()
+                };
+                
+                // Get existing palettes from localStorage
+                let savedPalettes = JSON.parse(localStorage.getItem('chromacraft-palettes') || '[]');
+                
+                // Add new palette
+                savedPalettes.unshift(paletteData);
+                
+                // Limit to 20 palettes
+                if (savedPalettes.length > 20) {
+                    savedPalettes = savedPalettes.slice(0, 20);
+                }
+                
+                // Save back to localStorage
+                localStorage.setItem('chromacraft-palettes', JSON.stringify(savedPalettes));
+                
+                // Show notification
+                showNotification('Palette saved successfully!');
+                
+                // Refresh saved palettes if on that tab
+                if (document.querySelector('.tab[data-tab="saved"]').classList.contains('active')) {
+                    loadSavedPalettes();
+                }
+            }
+            
+            function loadSavedPalettes() {
+                const savedPalettesData = JSON.parse(localStorage.getItem('chromacraft-palettes') || '[]');
+                const savedPalettesContainer = document.getElementById('saved-palettes');
+                
+                if (savedPalettesData.length === 0) {
+                    savedPalettesContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-palette"></i>
+                            <h3>No Saved Palettes</h3>
+                            <p>Generate and save palettes to see them here</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                savedPalettesContainer.innerHTML = `
+                    <div class="saved-palettes-grid">
+                        ${savedPalettesData.map((palette, index) => `
+                            <div class="saved-palette" data-index="${index}">
+                                <div class="saved-palette-colors">
+                                    ${palette.colors.map(color => `
+                                        <div class="saved-palette-color" style="background-color: ${color};" title="${color}"></div>
+                                    `).join('')}
+                                </div>
+                                <div class="saved-palette-info">
+                                    <div class="saved-palette-name">${palette.name}</div>
+                                    <div class="saved-palette-date">${new Date(palette.date).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                // Add event listeners to saved palettes
+                document.querySelectorAll('.saved-palette').forEach(paletteEl => {
+                    paletteEl.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const palette = savedPalettesData[index];
+                        
+                        // Load the palette
+                        currentPalette = palette.colors;
+                        paletteType.value = palette.type;
+                        renderPalette(currentPalette);
+                        
+                        // Switch to current palette tab
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        document.querySelector('.tab[data-tab="current"]').classList.add('active');
+                        document.getElementById('current-tab').classList.add('active');
+                        
+                        // Show notification
+                        showNotification('Palette loaded successfully!');
+                    });
+                });
+            }
+            
+            function copyToClipboard(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            
+            function showNotification(message) {
+                notificationText.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
